@@ -1,5 +1,4 @@
-import CausalQIF.Probability.FinitePMF.Entropy
-import CausalQIF.Probability.FinitePMF.Pullback
+import CausalQIF.Probability.FinitePMF
 
 open Finset
 open scoped BigOperators Real

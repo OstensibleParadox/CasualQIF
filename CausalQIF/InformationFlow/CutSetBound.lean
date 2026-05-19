@@ -42,7 +42,7 @@ structure CutSetData (State VisibleTrace MissingTrace CutVars : Type) where
 
 def cutMutualInfo {CutVars : Type} [Fintype CutVars] [DecidableEq CutVars]
     (P : Probability.FinitePMF (State × VisibleTrace × MissingTrace))
-    (cut : CutSetData State VisibleTrace MissingTrace CutVars) : ℝ :=
+    (_cut : CutSetData State VisibleTrace MissingTrace CutVars) : ℝ :=
   stateLeakage P
 
 /-! ## Main Cut-Set Bound Theorem -/

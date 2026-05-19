@@ -41,12 +41,12 @@ to the new CausalQIF API. No compatibility wrappers are provided.
 | Old Name | New Name |
 |----------|----------|
 | `DSeparation.dSeparated_iff_dSeparates` | `CausalQIF.DSeparation.dSeparated_iff_dSeparates` |
-| `InfoTheory.cond_mutual_info_zero_of_markov` | `CausalQIF.Probability.cond_mutual_info_zero_of_markov` |
-| `FiniteQuerySandbox.isMarkovChain_of_factorizes_dsep` | `CausalQIF.CausalModel.isMarkovChain_of_factorizes_dSeparates` |
+| `InfoTheory.cond_mutual_info_zero_of_markov` | `CausalQIF.Probability.condMutualInfo_eq_zero_of_isMarkovChain` |
+| `FiniteQuerySandbox.isMarkovChain_of_factorizes_dsep` | `CausalQIF.CausalModel.isMarkovChain_of_factorizes_of_dSeparates` |
 | `FiniteQuerySandbox.cmi_zero_of_factorizes_dsep` | `CausalQIF.CausalModel.condMutualInfo_eq_zero_of_factorizes_of_dSeparates` |
-| (new) | `CausalQIF.condMutualInfo_eq_zero_of_factorizes_of_dSeparated` |
-| (new) | `CausalQIF.stateLeakage_le_of_factorizes_of_dSeparated_of_cutMutualInfo_le` |
-| (new) | `CausalQIF.linearChain_stateLeakage_le_one_of_dSeparated` |
+| (new) | `CausalQIF.condMutualInfo_eq_zero_of_factorizes_of_dSeparates` |
+| (new) | `CausalQIF.stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le` |
+| (new) | `CausalQIF.linearChain_stateLeakage_le_one_of_dSeparates` |
 
 ## Removed Modules
 

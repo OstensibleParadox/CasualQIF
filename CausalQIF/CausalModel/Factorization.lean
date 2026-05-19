@@ -30,7 +30,7 @@ def isMarkovChainNodeCI (P : Probability.FinitePMF (α × β × γ)) (X Y Z : Fi
 
 /-! ## Bridge Theorems -/
 
-theorem isMarkovChain_of_factorizes_dSeparates
+theorem isMarkovChain_of_factorizes_of_dSeparates
     (G : Graph.DAG) (P : Probability.FinitePMF (α × β × γ))
     (h_factor : FactorizesOverDAG G isMarkovChainNodeCI P)
     (h_dsep : DSeparation.dSeparates G ({0} : Finset ℕ) ({2} : Finset ℕ) ({1} : Finset ℕ)) :
@@ -43,7 +43,7 @@ theorem condMutualInfo_eq_zero_of_factorizes_of_dSeparates
     (h_dsep : DSeparation.dSeparates G ({0} : Finset ℕ) ({2} : Finset ℕ) ({1} : Finset ℕ)) :
     Probability.I_A_cond_C_B P = 0 :=
   Probability.condMutualInfo_eq_zero_of_isMarkovChain P
-    (isMarkovChain_of_factorizes_dSeparates G P h_factor h_dsep)
+    (isMarkovChain_of_factorizes_of_dSeparates G P h_factor h_dsep)
 
 end
 

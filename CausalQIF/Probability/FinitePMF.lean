@@ -123,29 +123,29 @@ lemma entropyOf_mul_log2 {η : Type} [Fintype η] [DecidableEq η] (mass : η �
 
 /-! ## Marginals -/
 
-def marginalLeftMass (P : FinitePMF (α × β)) (x : α) : ℝ :=
+def marginalPair_Fst (P : FinitePMF (α × β)) (x : α) : ℝ :=
   ∑ y : β, P.pmf (x, y)
 
-def marginalRightMass (P : FinitePMF (α × β)) (y : β) : ℝ :=
+def marginalPair_Snd (P : FinitePMF (α × β)) (y : β) : ℝ :=
   ∑ x : α, P.pmf (x, y)
 
-lemma marginalLeftMass_nonneg (P : FinitePMF (α × β)) (x : α) :
-    0 ≤ marginalLeftMass P x :=
+lemma marginalPair_Fst_nonneg (P : FinitePMF (α × β)) (x : α) :
+    0 ≤ marginalPair_Fst P x :=
   Finset.sum_nonneg (fun y _ => P.pmf_nonneg (x, y))
 
-lemma marginalRightMass_nonneg (P : FinitePMF (α × β)) (y : β) :
-    0 ≤ marginalRightMass P y :=
+lemma marginalPair_Snd_nonneg (P : FinitePMF (α × β)) (y : β) :
+    0 ≤ marginalPair_Snd P y :=
   Finset.sum_nonneg (fun x _ => P.pmf_nonneg (x, y))
 
-lemma marginalLeftMass_sum_one (P : FinitePMF (α × β)) :
-    ∑ x : α, marginalLeftMass P x = 1 := by
-  unfold marginalLeftMass
+lemma marginalPair_Fst_sum_one (P : FinitePMF (α × β)) :
+    ∑ x : α, marginalPair_Fst P x = 1 := by
+  unfold marginalPair_Fst
   rw [← Finset.sum_product]
   exact P.sum_one
 
-lemma marginalRightMass_sum_one (P : FinitePMF (α × β)) :
-    ∑ y : β, marginalRightMass P y = 1 := by
-  unfold marginalRightMass
+lemma marginalPair_Snd_sum_one (P : FinitePMF (α × β)) :
+    ∑ y : β, marginalPair_Snd P y = 1 := by
+  unfold marginalPair_Snd
   rw [Finset.sum_comm]
   rw [← Finset.sum_product]
   exact P.sum_one
@@ -162,38 +162,38 @@ def marginalizeLeafPMF (P : FinitePMF (α × β)) : FinitePMF α where
 
 /-! ## Three-variable marginals -/
 
-def marginalZMass (P : FinitePMF (α × β × γ)) (z : γ) : ℝ :=
+def marginalTriple_Thd (P : FinitePMF (α × β × γ)) (z : γ) : ℝ :=
   ∑ x : α, ∑ y : β, P.pmf (x, y, z)
 
-def marginalXZMass (P : FinitePMF (α × β × γ)) (xz : α × γ) : ℝ :=
+def marginalTriple_FstThd (P : FinitePMF (α × β × γ)) (xz : α × γ) : ℝ :=
   ∑ y : β, P.pmf (xz.1, y, xz.2)
 
-def marginalYZMass (P : FinitePMF (α × β × γ)) (yz : β × γ) : ℝ :=
+def marginalTriple_SndThd (P : FinitePMF (α × β × γ)) (yz : β × γ) : ℝ :=
   ∑ x : α, P.pmf (x, yz.1, yz.2)
 
-lemma marginalXZMass_nonneg (P : FinitePMF (α × β × γ)) (xz : α × γ) :
-    0 ≤ marginalXZMass P xz :=
+lemma marginalTriple_FstThd_nonneg (P : FinitePMF (α × β × γ)) (xz : α × γ) :
+    0 ≤ marginalTriple_FstThd P xz :=
   Finset.sum_nonneg (fun y _ => P.pmf_nonneg (xz.1, y, xz.2))
 
-lemma marginalYZMass_nonneg (P : FinitePMF (α × β × γ)) (yz : β × γ) :
-    0 ≤ marginalYZMass P yz :=
+lemma marginalTriple_SndThd_nonneg (P : FinitePMF (α × β × γ)) (yz : β × γ) :
+    0 ≤ marginalTriple_SndThd P yz :=
   Finset.sum_nonneg (fun x _ => P.pmf_nonneg (x, yz.1, yz.2))
 
-lemma marginalZMass_nonneg (P : FinitePMF (α × β × γ)) (z : γ) :
-    0 ≤ marginalZMass P z :=
+lemma marginalTriple_Thd_nonneg (P : FinitePMF (α × β × γ)) (z : γ) :
+    0 ≤ marginalTriple_Thd P z :=
   Finset.sum_nonneg (fun x _ => Finset.sum_nonneg (fun y _ => P.pmf_nonneg (x, y, z)))
 
-lemma marginalXZMass_sum_z (P : FinitePMF (α × β × γ)) (z : γ) :
-    ∑ x : α, marginalXZMass P (x, z) = marginalZMass P z := by
+lemma marginalTriple_FstThd_sum_thd (P : FinitePMF (α × β × γ)) (z : γ) :
+    ∑ x : α, marginalTriple_FstThd P (x, z) = marginalTriple_Thd P z := by
   rfl
 
-lemma marginalYZMass_sum_z (P : FinitePMF (α × β × γ)) (z : γ) :
-    ∑ y : β, marginalYZMass P (y, z) = marginalZMass P z := by
-  unfold marginalYZMass marginalZMass
+lemma marginalTriple_SndThd_sum_thd (P : FinitePMF (α × β × γ)) (z : γ) :
+    ∑ y : β, marginalTriple_SndThd P (y, z) = marginalTriple_Thd P z := by
+  unfold marginalTriple_SndThd marginalTriple_Thd
   rw [Finset.sum_comm]
 
-lemma marginalZMass_sum_one (P : FinitePMF (α × β × γ)) :
-    ∑ z : γ, marginalZMass P z = 1 := by
+lemma marginalTriple_Thd_sum_one (P : FinitePMF (α × β × γ)) :
+    ∑ z : γ, marginalTriple_Thd P z = 1 := by
   have hsum : (∑ x : α, ∑ y : β, ∑ z : γ, P.pmf (x, y, z)) = 1 := by
     calc
       (∑ x : α, ∑ y : β, ∑ z : γ, P.pmf (x, y, z))
@@ -204,7 +204,7 @@ lemma marginalZMass_sum_one (P : FinitePMF (α × β × γ)) :
       _ = ∑ xyz : α × β × γ, P.pmf xyz := by
             rw [← Fintype.sum_prod_type]
       _ = 1 := P.sum_one
-  unfold marginalZMass
+  unfold marginalTriple_Thd
   rw [Finset.sum_comm]
   rw [show (∑ x : α, ∑ z : γ, ∑ y : β, P.pmf (x, y, z))
       = ∑ x : α, ∑ y : β, ∑ z : γ, P.pmf (x, y, z) by
@@ -215,10 +215,10 @@ lemma marginalZMass_sum_one (P : FinitePMF (α × β × γ)) :
 
 /-! ## Pullback Lemmas -/
 
-lemma marginalXZMass_pullback (P : FinitePMF (α × β × γ)) (f : α × γ → ℝ) :
-    ∑ xz : α × γ, marginalXZMass P xz * f xz =
+lemma marginalTriple_FstThd_pullback (P : FinitePMF (α × β × γ)) (f : α × γ → ℝ) :
+    ∑ xz : α × γ, marginalTriple_FstThd P xz * f xz =
     ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (a, c) := by
-  unfold marginalXZMass
+  unfold marginalTriple_FstThd
   calc
     ∑ xz : α × γ, (∑ y : β, P.pmf (xz.1, y, xz.2)) * f xz
         = ∑ xz : α × γ, ∑ y : β, P.pmf (xz.1, y, xz.2) * f xz := by
@@ -231,10 +231,10 @@ lemma marginalXZMass_pullback (P : FinitePMF (α × β × γ)) (f : α × γ →
     _ = ∑ a : α, ∑ y : β, ∑ c : γ, P.pmf (a, y, c) * f (a, c) := by rw [Finset.sum_comm]
     _ = ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (a, c) := rfl
 
-lemma marginalYZMass_pullback (P : FinitePMF (α × β × γ)) (f : β × γ → ℝ) :
-    ∑ yz : β × γ, marginalYZMass P yz * f yz =
+lemma marginalTriple_SndThd_pullback (P : FinitePMF (α × β × γ)) (f : β × γ → ℝ) :
+    ∑ yz : β × γ, marginalTriple_SndThd P yz * f yz =
     ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (b, c) := by
-  unfold marginalYZMass
+  unfold marginalTriple_SndThd
   calc
     ∑ yz : β × γ, (∑ x : α, P.pmf (x, yz.1, yz.2)) * f yz
         = ∑ yz : β × γ, ∑ x : α, P.pmf (x, yz.1, yz.2) * f yz := by
@@ -246,10 +246,10 @@ lemma marginalYZMass_pullback (P : FinitePMF (α × β × γ)) (f : β × γ →
       rw [Fintype.sum_prod_type]
     _ = ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (b, c) := rfl
 
-lemma marginalZMass_pullback (P : FinitePMF (α × β × γ)) (f : γ → ℝ) :
-    ∑ z : γ, marginalZMass P z * f z =
+lemma marginalTriple_Thd_pullback (P : FinitePMF (α × β × γ)) (f : γ → ℝ) :
+    ∑ z : γ, marginalTriple_Thd P z * f z =
     ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f c := by
-  unfold marginalZMass
+  unfold marginalTriple_Thd
   calc
     ∑ c : γ, (∑ a : α, ∑ b : β, P.pmf (a, b, c)) * f c
         = ∑ c : γ, ∑ a : α, ∑ b : β, P.pmf (a, b, c) * f c := by

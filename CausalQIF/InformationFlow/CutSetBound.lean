@@ -121,12 +121,12 @@ lemma pmf_from_vars_apply {CutVars : Type} [Fintype CutVars] [DecidableEq CutVar
       · exact hm
     simpa [hx] using hcut
 
-lemma marginalXWMass_eq_stateVisibleMass {CutVars : Type} [Fintype CutVars]
+lemma marginalQuad_FstFth_eq_stateVisibleMass {CutVars : Type} [Fintype CutVars]
     [DecidableEq CutVars]
     (P : Probability.FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars) (st : State × VisibleTrace) :
-    Probability.marginalXWMass (pmf_from_vars P cut) (st.1, st.2) = stateVisibleMass P st := by
-  unfold Probability.marginalXWMass stateVisibleMass
+    Probability.marginalQuad_FstFth (pmf_from_vars P cut) (st.1, st.2) = stateVisibleMass P st := by
+  unfold Probability.marginalQuad_FstFth stateVisibleMass
   calc
     ∑ k : CutVars, ∑ m : MissingTrace, (pmf_from_vars P cut).pmf (st.1, k, m, st.2)
         =
@@ -140,11 +140,11 @@ lemma marginalXWMass_eq_stateVisibleMass {CutVars : Type} [Fintype CutVars]
     _ = ∑ m : MissingTrace, P.pmf (st.1, st.2, m) := by
           simp
 
-lemma marginalWMass_eq_visibleMass {CutVars : Type} [Fintype CutVars] [DecidableEq CutVars]
+lemma marginalQuad_Fth_eq_visibleMass {CutVars : Type} [Fintype CutVars] [DecidableEq CutVars]
     (P : Probability.FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars) (t : VisibleTrace) :
-    Probability.marginalWMass (pmf_from_vars P cut) t = visibleMass P t := by
-  unfold Probability.marginalWMass visibleMass
+    Probability.marginalQuad_Fth (pmf_from_vars P cut) t = visibleMass P t := by
+  unfold Probability.marginalQuad_Fth visibleMass
   calc
     ∑ s : State, ∑ k : CutVars, ∑ m : MissingTrace,
         (pmf_from_vars P cut).pmf (s, k, m, t)
@@ -161,12 +161,12 @@ lemma marginalWMass_eq_visibleMass {CutVars : Type} [Fintype CutVars] [Decidable
     _ = ∑ s : State, ∑ m : MissingTrace, P.pmf (s, t, m) := by
           simp
 
-lemma marginalZWMass_eq_visibleMissingMass_swap {CutVars : Type} [Fintype CutVars]
+lemma marginalQuad_ThdFth_eq_visibleMissingMass_swap {CutVars : Type} [Fintype CutVars]
     [DecidableEq CutVars]
     (P : Probability.FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars) (mt : MissingTrace × VisibleTrace) :
-    Probability.marginalZWMass (pmf_from_vars P cut) mt = visibleMissingMass P (mt.2, mt.1) := by
-  unfold Probability.marginalZWMass visibleMissingMass
+    Probability.marginalQuad_ThdFth (pmf_from_vars P cut) mt = visibleMissingMass P (mt.2, mt.1) := by
+  unfold Probability.marginalQuad_ThdFth visibleMissingMass
   change
     (∑ s : State, ∑ k : CutVars, (pmf_from_vars P cut).pmf (s, k, mt.1, mt.2))
       =
@@ -184,13 +184,13 @@ lemma marginalZWMass_eq_visibleMissingMass_swap {CutVars : Type} [Fintype CutVar
     _ = ∑ s : State, P.pmf (s, mt.2, mt.1) := by
           simp
 
-lemma marginalXZWMass_eq_P_swap {CutVars : Type} [Fintype CutVars] [DecidableEq CutVars]
+lemma marginalQuad_FstThdFth_eq_P_swap {CutVars : Type} [Fintype CutVars] [DecidableEq CutVars]
     (P : Probability.FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars)
     (smt : State × MissingTrace × VisibleTrace) :
-    Probability.marginalXZWMass (pmf_from_vars P cut) smt =
+    Probability.marginalQuad_FstThdFth (pmf_from_vars P cut) smt =
       P.pmf (smt.1, smt.2.2, smt.2.1) := by
-  unfold Probability.marginalXZWMass
+  unfold Probability.marginalQuad_FstThdFth
   change
     (∑ k : CutVars, (pmf_from_vars P cut).pmf (smt.1, k, smt.2.1, smt.2.2))
       =
@@ -215,33 +215,33 @@ lemma stateLeakage_eq_I_XZ_W_pmf_from_vars {CutVars : Type} [Fintype CutVars]
     (cut : CutSetData State VisibleTrace MissingTrace CutVars) :
     stateLeakage P = Probability.I_XZ_W (pmf_from_vars P cut) := by
   let P4 := pmf_from_vars P cut
-  have hXW : Probability.entropyOf (Probability.marginalXWMass P4) =
+  have hXW : Probability.entropyOf (Probability.marginalQuad_FstFth P4) =
       Probability.entropyOf (stateVisibleMass P) := by
     unfold Probability.entropyOf
     apply sum_congr rfl
     intro xw _
-    rw [marginalXWMass_eq_stateVisibleMass]
-  have hZW : Probability.entropyOf (Probability.marginalZWMass P4) =
+    rw [marginalQuad_FstFth_eq_stateVisibleMass]
+  have hZW : Probability.entropyOf (Probability.marginalQuad_ThdFth P4) =
       Probability.entropyOf (visibleMissingMass P) := by
     let e : (MissingTrace × VisibleTrace) ≃ (VisibleTrace × MissingTrace) :=
       Equiv.prodComm MissingTrace VisibleTrace
-    exact Probability.entropyOf_equiv_eq e (fun mt => Probability.marginalZWMass P4 mt)
+    exact Probability.entropyOf_equiv_eq e (fun mt => Probability.marginalQuad_ThdFth P4 mt)
       (visibleMissingMass P)
-      (fun mt => by simpa using marginalZWMass_eq_visibleMissingMass_swap P cut mt)
-  have hW : Probability.entropyOf (Probability.marginalWMass P4) =
+      (fun mt => by simpa using marginalQuad_ThdFth_eq_visibleMissingMass_swap P cut mt)
+  have hW : Probability.entropyOf (Probability.marginalQuad_Fth P4) =
       Probability.entropyOf (visibleMass P) := by
     unfold Probability.entropyOf
     apply sum_congr rfl
     intro w _
-    rw [marginalWMass_eq_visibleMass]
-  have hXZW : Probability.entropyOf (Probability.marginalXZWMass P4) =
+    rw [marginalQuad_Fth_eq_visibleMass]
+  have hXZW : Probability.entropyOf (Probability.marginalQuad_FstThdFth P4) =
       fullTraceEntropy P := by
     let e : (State × MissingTrace × VisibleTrace) ≃ (State × VisibleTrace × MissingTrace) :=
       (Equiv.refl State).prodCongr (Equiv.prodComm MissingTrace VisibleTrace)
     unfold fullTraceEntropy
-    exact Probability.entropyOf_equiv_eq e (fun smt => Probability.marginalXZWMass P4 smt)
+    exact Probability.entropyOf_equiv_eq e (fun smt => Probability.marginalQuad_FstThdFth P4 smt)
       P.pmf
-      (fun smt => by simpa using marginalXZWMass_eq_P_swap P cut smt)
+      (fun smt => by simpa using marginalQuad_FstThdFth_eq_P_swap P cut smt)
   unfold stateLeakage Probability.I_XZ_W
   rw [hXW, hZW, hW, hXZW]
 

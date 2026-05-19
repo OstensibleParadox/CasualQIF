@@ -12,15 +12,15 @@ open Probability
 /-! ## Marginal of Y from a 4-variable PMF -/
 
 /-- Marginal distribution of Y from a 4-variable PMF P(x, y, z, w). -/
-def marginalYMass {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
+def marginalQuad_Snd {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
     (P : FinitePMF (α × β × γ × δ)) (y : β) : ℝ :=
   ∑ x : α, ∑ z : γ, ∑ w : δ, P.pmf (x, y, z, w)
 
-lemma marginalYMass_nonneg {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
+lemma marginalQuad_Snd_nonneg {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
-    (P : FinitePMF (α × β × γ × δ)) (y : β) : 0 ≤ marginalYMass P y := by
-  unfold marginalYMass
+    (P : FinitePMF (α × β × γ × δ)) (y : β) : 0 ≤ marginalQuad_Snd P y := by
+  unfold marginalQuad_Snd
   apply Finset.sum_nonneg
   intro x _
   apply Finset.sum_nonneg
@@ -29,10 +29,10 @@ lemma marginalYMass_nonneg {α β γ δ : Type} [Fintype α] [Fintype β] [Finty
   intro w _
   exact P.pmf_nonneg (x, y, z, w)
 
-lemma marginalYMass_sum_one {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
+lemma marginalQuad_Snd_sum_one {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
-    (P : FinitePMF (α × β × γ × δ)) : ∑ y : β, marginalYMass P y = 1 := by
-  unfold marginalYMass
+    (P : FinitePMF (α × β × γ × δ)) : ∑ y : β, marginalQuad_Snd P y = 1 := by
+  unfold marginalQuad_Snd
   calc
     ∑ y : β, ∑ x : α, ∑ z : γ, ∑ w : δ, P.pmf (x, y, z, w) =
       ∑ x : α, ∑ y : β, ∑ z : γ, ∑ w : δ, P.pmf (x, y, z, w) := by
@@ -40,11 +40,11 @@ lemma marginalYMass_sum_one {α β γ δ : Type} [Fintype α] [Fintype β] [Fint
     _ = 1 := by
       simpa [Fintype.sum_prod_type] using P.sum_one
 
-lemma marginalYMass_eq_marginalYWMass_on_unit {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
+lemma marginalQuad_Snd_eq_marginalYWMass_on_unit {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ]
     (P : FinitePMF (α × β × γ × Unit)) (y : β) :
-    marginalYMass P y = marginalYWMass P (y, ()) := by
-  unfold marginalYMass marginalYWMass
+    marginalQuad_Snd P y = marginalQuad_SndFth P (y, ()) := by
+  unfold marginalQuad_Snd marginalQuad_SndFth
   simp
 
 /-! ## KKT Certificate Structure -/
@@ -100,7 +100,7 @@ theorem capacity_le_of_kkt
 
 /--
 Construct a KKT certificate from a direct bound on I_YZ_W and the actual
-marginal distribution p(y) = marginalYMass(P4)(y).
+marginal distribution p(y) = marginalQuad_Snd(P4)(y).
 
 The per-symbol terms are all set to I_YZ_W(P4), so the weighted decomposition
 holds because Σ_y p(y) = 1.
@@ -114,19 +114,19 @@ def KKT_Certificate.of_direct_bound
     (h_bound : I_YZ_W P4 ≤ C) : KKT_Certificate P4 :=
   {
     C := C
-    p_star := marginalYMass P4
+    p_star := marginalQuad_Snd P4
     per_symbol_I := fun _ => I_YZ_W P4
     h_weighted_decomp := by
       calc
-        I_YZ_W P4 = (∑ y : β, marginalYMass P4 y) * I_YZ_W P4 := by
-          rw [marginalYMass_sum_one P4, one_mul]
-        _ = ∑ y : β, (marginalYMass P4 y * I_YZ_W P4) := by
+        I_YZ_W P4 = (∑ y : β, marginalQuad_Snd P4 y) * I_YZ_W P4 := by
+          rw [marginalQuad_Snd_sum_one P4, one_mul]
+        _ = ∑ y : β, (marginalQuad_Snd P4 y * I_YZ_W P4) := by
           rw [Finset.sum_mul]
     h_kkt_condition := by
       intro y
       exact h_bound
-    h_p_star_nonneg := marginalYMass_nonneg P4
-    h_p_star_sum_one := marginalYMass_sum_one P4
+    h_p_star_nonneg := marginalQuad_Snd_nonneg P4
+    h_p_star_sum_one := marginalQuad_Snd_sum_one P4
   }
 
 end

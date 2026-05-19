@@ -12,10 +12,10 @@ variable [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
 
 /-! ## Markov Chain Definitions -/
 
-def marginalB (P : FinitePMF (α × β × γ)) (b : β) : ℝ :=
+def marginalTriple_Snd (P : FinitePMF (α × β × γ)) (b : β) : ℝ :=
   ∑ a : α, ∑ c : γ, P.pmf (a, b, c)
 
-def marginalAB (P : FinitePMF (α × β × γ)) (ab : α × β) : ℝ :=
+def marginalTriple_FstSnd (P : FinitePMF (α × β × γ)) (ab : α × β) : ℝ :=
   ∑ c : γ, P.pmf (ab.1, ab.2, c)
 
 def marginalBC (P : FinitePMF (α × β × γ)) (bc : β × γ) : ℝ :=
@@ -23,8 +23,8 @@ def marginalBC (P : FinitePMF (α × β × γ)) (bc : β × γ) : ℝ :=
 
 def IsMarkovChain (P : FinitePMF (α × β × γ)) : Prop :=
   ∀ a b c,
-    P.pmf (a, b, c) * marginalB P b =
-      marginalAB P (a, b) * marginalBC P (b, c)
+    P.pmf (a, b, c) * marginalTriple_Snd P b =
+      marginalTriple_FstSnd P (a, b) * marginalBC P (b, c)
 
 /-! ## CMI=0 for Markov Chains -/
 
@@ -45,8 +45,8 @@ theorem condMutualInfo_eq_zero_of_isMarkovChain (P : FinitePMF (α × β × γ))
   unfold I_A_cond_C_B
   refine condMutualInfo_eq_zero_of_condIndep (pmfACB P) ?_
   intro a c b
-  simpa [pmfACB, FinitePMF.comapEquiv, equivACB, marginalB, marginalAB, marginalBC,
-    marginalZMass, marginalXZMass, marginalYZMass] using hMC a b c
+  simpa [pmfACB, FinitePMF.comapEquiv, equivACB, marginalTriple_Snd, marginalTriple_FstSnd, marginalBC,
+    marginalTriple_Thd, marginalTriple_FstThd, marginalTriple_SndThd] using hMC a b c
 
 end
 

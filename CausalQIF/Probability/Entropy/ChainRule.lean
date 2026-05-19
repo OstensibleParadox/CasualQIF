@@ -13,60 +13,60 @@ variable [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
 
 /-! ## Four-variable Conditional Mutual Information and DPI -/
 
-def marginalXWMass (P : FinitePMF (α × β × γ × δ)) (xw : α × δ) : ℝ :=
+def marginalQuad_FstFth (P : FinitePMF (α × β × γ × δ)) (xw : α × δ) : ℝ :=
   ∑ y : β, ∑ z : γ, P.pmf (xw.1, y, z, xw.2)
 
-def marginalYWMass (P : FinitePMF (α × β × γ × δ)) (yw : β × δ) : ℝ :=
+def marginalQuad_SndFth (P : FinitePMF (α × β × γ × δ)) (yw : β × δ) : ℝ :=
   ∑ x : α, ∑ z : γ, P.pmf (x, yw.1, z, yw.2)
 
-def marginalZWMass (P : FinitePMF (α × β × γ × δ)) (zw : γ × δ) : ℝ :=
+def marginalQuad_ThdFth (P : FinitePMF (α × β × γ × δ)) (zw : γ × δ) : ℝ :=
   ∑ x : α, ∑ y : β, P.pmf (x, y, zw.1, zw.2)
 
-def marginalWMass (P : FinitePMF (α × β × γ × δ)) (w : δ) : ℝ :=
+def marginalQuad_Fth (P : FinitePMF (α × β × γ × δ)) (w : δ) : ℝ :=
   ∑ x : α, ∑ y : β, ∑ z : γ, P.pmf (x, y, z, w)
 
-def marginalXZWMass (P : FinitePMF (α × β × γ × δ)) (xzw : α × γ × δ) : ℝ :=
+def marginalQuad_FstThdFth (P : FinitePMF (α × β × γ × δ)) (xzw : α × γ × δ) : ℝ :=
   ∑ y : β, P.pmf (xzw.1, y, xzw.2.1, xzw.2.2)
 
-def marginalYZWMass (P : FinitePMF (α × β × γ × δ)) (yzw : β × γ × δ) : ℝ :=
+def marginalQuad_SndThdFth (P : FinitePMF (α × β × γ × δ)) (yzw : β × γ × δ) : ℝ :=
   ∑ x : α, P.pmf (x, yzw.1, yzw.2.1, yzw.2.2)
 
-def marginalXYWMass (P : FinitePMF (α × β × γ × δ)) (xyw : α × β × δ) : ℝ :=
+def marginalQuad_FstSndFth (P : FinitePMF (α × β × γ × δ)) (xyw : α × β × δ) : ℝ :=
   ∑ z : γ, P.pmf (xyw.1, xyw.2.1, z, xyw.2.2)
 
 /-- `I(X;Z | W)` for a four-variable PMF `(X,Y,Z,W)`. -/
 def I_XZ_W (P : FinitePMF (α × β × γ × δ)) : ℝ :=
-  entropyOf (marginalXWMass P) +
-    entropyOf (marginalZWMass P) -
-    entropyOf (marginalWMass P) -
-    entropyOf (marginalXZWMass P)
+  entropyOf (marginalQuad_FstFth P) +
+    entropyOf (marginalQuad_ThdFth P) -
+    entropyOf (marginalQuad_Fth P) -
+    entropyOf (marginalQuad_FstThdFth P)
 
 /-- `I(Y;Z | W)` for a four-variable PMF `(X,Y,Z,W)`. -/
 def I_YZ_W (P : FinitePMF (α × β × γ × δ)) : ℝ :=
-  entropyOf (marginalYWMass P) +
-    entropyOf (marginalZWMass P) -
-    entropyOf (marginalWMass P) -
-    entropyOf (marginalYZWMass P)
+  entropyOf (marginalQuad_SndFth P) +
+    entropyOf (marginalQuad_ThdFth P) -
+    entropyOf (marginalQuad_Fth P) -
+    entropyOf (marginalQuad_SndThdFth P)
 
 /-- `I(Y;Z | X,W)` for a four-variable PMF `(X,Y,Z,W)`. -/
 def I_YZ_XW (P : FinitePMF (α × β × γ × δ)) : ℝ :=
-  entropyOf (marginalXYWMass P) +
-    entropyOf (marginalXZWMass P) -
-    entropyOf (marginalXWMass P) -
+  entropyOf (marginalQuad_FstSndFth P) +
+    entropyOf (marginalQuad_FstThdFth P) -
+    entropyOf (marginalQuad_FstFth P) -
     entropyOf P.pmf
 
 /-- `I(X;Z | Y,W)` for a four-variable PMF `(X,Y,Z,W)`. -/
 def I_XZ_YW (P : FinitePMF (α × β × γ × δ)) : ℝ :=
-  entropyOf (marginalXYWMass P) +
-    entropyOf (marginalYZWMass P) -
-    entropyOf (marginalYWMass P) -
+  entropyOf (marginalQuad_FstSndFth P) +
+    entropyOf (marginalQuad_SndThdFth P) -
+    entropyOf (marginalQuad_SndFth P) -
     entropyOf P.pmf
 
 /-- `I((X,Y);Z | W)` for a four-variable PMF `(X,Y,Z,W)`. -/
 def I_XY_Z_W (P : FinitePMF (α × β × γ × δ)) : ℝ :=
-  entropyOf (marginalXYWMass P) +
-    entropyOf (marginalZWMass P) -
-    entropyOf (marginalWMass P) -
+  entropyOf (marginalQuad_FstSndFth P) +
+    entropyOf (marginalQuad_ThdFth P) -
+    entropyOf (marginalQuad_Fth P) -
     entropyOf P.pmf
 
 lemma I_XY_Z_W_eq_I_XZ_W_add_I_YZ_XW (P : FinitePMF (α × β × γ × δ)) :
@@ -125,24 +125,24 @@ lemma condMutualInfo_pmfYZXW (P : FinitePMF (α × β × γ × δ)) :
     left_inv := by intro t; rcases t with ⟨x, z, w⟩; rfl
     right_inv := by intro t; rcases t with ⟨z, x, w⟩; rfl
   }
-  have hXYW : entropyOf (marginalXZMass (pmfYZXW P)) =
-      entropyOf (marginalXYWMass P) := by
+  have hXYW : entropyOf (marginalTriple_FstThd (pmfYZXW P)) =
+      entropyOf (marginalQuad_FstSndFth P) := by
     symm
-    refine entropyOf_equiv_eq eXYW (marginalXYWMass P)
-      (marginalXZMass (pmfYZXW P)) ?_
+    refine entropyOf_equiv_eq eXYW (marginalQuad_FstSndFth P)
+      (marginalTriple_FstThd (pmfYZXW P)) ?_
     intro xyw
     rcases xyw with ⟨x, y, w⟩
     rfl
-  have hXZW : entropyOf (marginalYZMass (pmfYZXW P)) =
-      entropyOf (marginalXZWMass P) := by
+  have hXZW : entropyOf (marginalTriple_SndThd (pmfYZXW P)) =
+      entropyOf (marginalQuad_FstThdFth P) := by
     symm
-    refine entropyOf_equiv_eq eXZW (marginalXZWMass P)
-      (marginalYZMass (pmfYZXW P)) ?_
+    refine entropyOf_equiv_eq eXZW (marginalQuad_FstThdFth P)
+      (marginalTriple_SndThd (pmfYZXW P)) ?_
     intro xzw
     rcases xzw with ⟨x, z, w⟩
     rfl
-  have hXW : entropyOf (marginalZMass (pmfYZXW P)) =
-      entropyOf (marginalXWMass P) := by
+  have hXW : entropyOf (marginalTriple_Thd (pmfYZXW P)) =
+      entropyOf (marginalQuad_FstFth P) := by
     apply congrArg entropyOf
     funext xw
     rcases xw with ⟨x, w⟩
@@ -173,24 +173,24 @@ lemma condMutualInfo_pmfXZYW (P : FinitePMF (α × β × γ × δ)) :
     left_inv := by intro t; rcases t with ⟨y, z, w⟩; rfl
     right_inv := by intro t; rcases t with ⟨z, y, w⟩; rfl
   }
-  have hXYW : entropyOf (marginalXZMass (pmfXZYW P)) =
-      entropyOf (marginalXYWMass P) := by
+  have hXYW : entropyOf (marginalTriple_FstThd (pmfXZYW P)) =
+      entropyOf (marginalQuad_FstSndFth P) := by
     symm
-    refine entropyOf_equiv_eq eXYW (marginalXYWMass P)
-      (marginalXZMass (pmfXZYW P)) ?_
+    refine entropyOf_equiv_eq eXYW (marginalQuad_FstSndFth P)
+      (marginalTriple_FstThd (pmfXZYW P)) ?_
     intro xyw
     rcases xyw with ⟨x, y, w⟩
     rfl
-  have hYZW : entropyOf (marginalYZMass (pmfXZYW P)) =
-      entropyOf (marginalYZWMass P) := by
+  have hYZW : entropyOf (marginalTriple_SndThd (pmfXZYW P)) =
+      entropyOf (marginalQuad_SndThdFth P) := by
     symm
-    refine entropyOf_equiv_eq eYZW (marginalYZWMass P)
-      (marginalYZMass (pmfXZYW P)) ?_
+    refine entropyOf_equiv_eq eYZW (marginalQuad_SndThdFth P)
+      (marginalTriple_SndThd (pmfXZYW P)) ?_
     intro yzw
     rcases yzw with ⟨y, z, w⟩
     rfl
-  have hYW : entropyOf (marginalZMass (pmfXZYW P)) =
-      entropyOf (marginalYWMass P) := by
+  have hYW : entropyOf (marginalTriple_Thd (pmfXZYW P)) =
+      entropyOf (marginalQuad_SndFth P) := by
     apply congrArg entropyOf
     funext yw
     rcases yw with ⟨y, w⟩
@@ -210,9 +210,9 @@ lemma condMutualInfo_pmfXZYW (P : FinitePMF (α × β × γ × δ)) :
 /-- Conditional Markovity as a concrete equality. -/
 def condMarkov (P : FinitePMF (α × β × γ × δ)) : Prop :=
   ∀ x y z w,
-    P.pmf (x, y, z, w) * marginalYWMass P (y, w)
+    P.pmf (x, y, z, w) * marginalQuad_SndFth P (y, w)
       =
-    marginalXYWMass P (x, y, w) * marginalYZWMass P (y, z, w)
+    marginalQuad_FstSndFth P (x, y, w) * marginalQuad_SndThdFth P (y, z, w)
 
 lemma I_YZ_XW_nonneg (P : FinitePMF (α × β × γ × δ)) : 0 ≤ I_YZ_XW P := by
   have h := condMutualInfo_nonneg (pmfYZXW P)
@@ -225,9 +225,9 @@ lemma I_XZ_YW_eq_zero_of_condMarkov
   · rwa [condMutualInfo_pmfXZYW P] at hzero
   · intro x z yw
     rcases yw with ⟨y, w⟩
-    simpa [condIndep, pmfXZYW, FinitePMF.comapEquiv, equivXZYW, marginalZMass,
-      marginalXZMass, marginalYZMass, marginalYWMass, marginalXYWMass,
-      marginalYZWMass] using h x y z w
+    simpa [condIndep, pmfXZYW, FinitePMF.comapEquiv, equivXZYW, marginalTriple_Thd,
+      marginalTriple_FstThd, marginalTriple_SndThd, marginalQuad_SndFth, marginalQuad_FstSndFth,
+      marginalQuad_SndThdFth] using h x y z w
 
 end
 

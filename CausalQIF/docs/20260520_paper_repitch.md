@@ -1,149 +1,210 @@
-# POPL Paper Re-Pitch — Unified `CausalQIF` Library
+# POPL Paper Reframing — 3-Act Structure
 
 **Date:** 2026-05-20
-**Target:** `~/Documents/popl27/paper/main.tex`
-**Status:** Strategy note, not a rewrite plan.
+**Status:** Active. Replaces previous "unified end-to-end QIF pipeline" pitch.
+**Companion:** `20260520_debt1_factorization.md`, `20260520_debt2_dual_witness.md`.
 
 ---
 
-## Why re-pitch
+## Title
 
-The current paper (`main.tex`) was written when the development was deliberately
-split into two artifacts:
+> Beyond Boolean Intersections: A Verified Bisimulation and Trace Decompiler
+> for Causal Graphs
 
-- This Lean package — d-separation equivalence + bisimulation.
-- A *cited anonymous artifact* `\cite{companionqif}` carrying the quantitative
-  QIF chain.
+## Three-Act Structure
 
-It hedges with:
+### Act 1 — The Bug in the Math Textbook
 
-- Abstract: "This paper mechanizes the graph-semantic front end; a *separate
-  anonymized artifact* mechanizes the finite quantitative information-flow
-  chain."
-- `InfoTheoryBridge.lean` carries **two intentional `sorry` placeholders** for
-  the artifact-proved bridge.
-- Engineering note (App. A): "two physically separate Lake projects with
-  near-isomorphic DAG definitions and no shared imports yet."
-- Contribution 6 names the artifact theorems
-  (`factorizes_dsep_implies_cond_indep`, `abstract_cut_set_bound`,
-  `capacity_le_of_kkt`, `linear_chain_cut_set_bound_from_dag`) as cited, not
-  in-repo.
+For decades, two textbook characterizations of d-separation — Pearl's
+trail-blocking predicate and Lauritzen's moralized ancestral graph — have been
+treated as unconditionally equivalent. When we formalized both in Lean 4's
+dependent type system, we discovered a **mechanized counterexample**: when an
+endpoint lies in the conditioning set Z, the moral-graph construction deletes
+that endpoint while the trail predicate still admits the one-edge trail with no
+internal triple. The unrestricted equivalence is **false**.
 
-All four hedges are now obsolete.
+Key theorem (proved, zero-sorry):
 
-## What changed under the paper
-
-The unified `CausalQIF` library proves the whole chain in one place,
-zero-sorry across the entire `CausalQIF/` namespace:
-
-```
-d-separation  →  conditional independence  →  conditional DPI  →  cut-set bound
-                          (proved in-repo: condMutualInfo_eq_zero_of_factorizes_of_dSeparates)
-                                                                  ↓
-                                                  stateLeakage_le_of_cutMutualInfo_le
-                                                                  ↓
-                                                  stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le
-                                                                  ↓
-                                                  certified_leakage_gap_of_dSeparated_graph
-                                                       H(S|T̃) ≤ H(S|T_full) + C
+```lean
+theorem dsep_complete_endpoint_in_Z_counterexample :
+    ∃ (G : DAG) (X Y Z : Finset ℕ),
+      DAG.dSeparated G X Y Z ∧ ¬ dSeparates G X Y Z
 ```
 
-Notable upgrades from old paper state:
+Source: `popl27/DSeparation/Counterexample.lean`. Not yet ported to `CasualQIF/`.
 
-- `InfoTheoryBridge.lean` 2-sorry placeholder → **bridge proved in-repo**
-  (`condMutualInfo_eq_zero_of_factorizes_of_dSeparates`, `Main.lean`).
-- Two-artifact split collapsed into one Lake project — the "no shared imports"
-  engineering note is false now.
-- New top theorem `certified_leakage_gap_of_dSeparated_graph` delivers an
-  **operational entropy-gap inequality** — an auditor's bound, not a cited
-  promise.
-- Refinement-hook framing: `entropy_security_decomposition` (chain rule
-  `H(S|T̃) = H(S|T_full) + stateLeakage`) is a `CausalQIF`-level lemma, not an
-  archived `DualCertificate` fact.
+The fix: `DisjointSets X Y Z` — a pairwise-disjointness precondition that acts
+as an ownership/aliasing guard, ensuring conditioned variables cannot be
+double-borrowed by the query endpoints. Under this guard, the equivalence holds.
 
-## The pivot
+### Act 2 — The Compiler & Decompiler
 
-Old spine: *"We verified a graph d-separation bisimulation (counterexample +
-optimizer + decompiler); the quantitative half lives in a cited artifact."*
+To repair the equivalence, we build two verified transformations:
 
-New spine: **"One zero-sorry Lean library carries a verified graph d-separation
-judgment all the way to a machine-checked operational Shannon leakage bound."**
+**Forward compiler (Certified Trace Optimizer):**
+Given a raw operational trace (active `Trail`), the compiler tracks directional
+signal flow (Bayes-Ball typestate), eliminates redundant collider variables, and
+compresses the trace into a dense reachability IR (`MAGWalk` → moral-graph
+connectivity). This is a peephole optimizer: local triple patterns map to graph
+adjacency or co-parent jumps.
 
-The bisimulation (counterexample, certified optimizer, constructive decompiler)
-stops being the product. It becomes the **soundness backbone of Layer 1** of a
-single end-to-end certified-security pipeline whose last theorem prints bits.
+```
+Trail (¬isBlocked)
+  → BayesBallPath
+  → MAGWalk
+  → dSeparationGraph.Reachable
+```
 
-That reframes the d-separation contribution: not "we mechanized an equivalence"
-but "we mechanized the *one link* that lets a graph query stand in for a
-conditional-independence premise inside a real leakage proof — and here is the
-leakage proof, proved, in the same artifact."
+**Reverse decompiler (Exploit Witness Synthesis):**
+When the abstract layer asserts connectivity (data-flow leak risk), the
+decompiler **constructively synthesizes** an actual exploit trace witness — not
+just a `False`, but a concrete `Trail` that demonstrates the information leak.
+The core is a **trace rerouting** paradigm with strict termination: each
+reroute eliminates a "bad collider" (illegal Bayes-Ball junction) via
+`ancestor_escape`, strictly decreasing a well-founded bad-count measure.
 
-## Honesty guardrails — do not oversell
+```
+¬DAG.dSeparated
+  → dSeparationGraph.Reachable
+  → StaticRoute
+  → NormalizedStaticRoute   (via route_improves_of_bad, well-founded descent)
+  → OpenTrace
+  → ActiveRoute
+  → ∃ Trail, ¬isBlocked
+  → ¬dSeparates
+```
 
-`stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le` still **takes
-as hypotheses**:
+Key theorems (all proved, zero-sorry):
 
-- `h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmf_from_vars P cut)`
-- `h_cap : cutCapacity P cut ≤ C`
+```lean
+theorem route_improves_of_bad {G : DAG} {X Y Z : Finset ℕ}
+    (w : StaticRouteWitness G X Y Z) (hbad : routeBadCount w ≠ 0) :
+    ∃ w' : StaticRouteWitness G X Y Z, routeBadCount w' < routeBadCount w
 
-So:
+theorem activeWitness_of_not_dSeparated {G : DAG} {X Y Z : Finset ℕ}
+    (hnot : ¬ DAG.dSeparated G X Y Z) :
+    ActiveWitness G X Y Z
+```
 
-- **Debt 1 (Verma–Pearl).** `FactorizesOverDAG` is currently *not* product
-  factorization — it is the Global Markov Property stated as an assumption
-  (`∀ X Y Z, dSeparates G X Y Z → CI P X Y Z`). Deriving it from recursive
-  product factorization is the open structural debt. See
-  `20260520_debt1_factorization.md`.
-- **Debt 2 (capacity sufficiency).** `cutCapacity P cut ≤ C` is currently
-  discharged only by `KKT_Certificate.of_direct_bound`, a tautological wrapper
-  that accepts the bound as input. Real sufficiency producer = dual KL witness.
-  See `20260520_debt2_dual_witness.md`.
-- **Debt 3 (surface calculus).** Unchanged from old paper.
+Source: `popl27/DSeparation/TraceSynthesis/Assembly.lean`. Not yet ported to
+`CasualQIF/`.
 
-The genuinely new defensible claim: **the d-sep→CI bridge is no longer a debt
-or a citation — it is proved in the same zero-sorry library, and it composes
-through DPI to a proved operational security bound.**
+### Act 3 — The Vision: Quantitative Information Flow
 
-## Three pitch directions
+The verified graph computation system becomes the **0-sorry foundation** for
+Shannon-level quantitative security bounds. With the corrected d-separation
+theory in place, downstream systems can mechanically convert graph-structural
+constraints into information-theoretic capacity limits.
 
-| Spine | Headline theorem | Risk | Honesty cost |
-|---|---|---|---|
-| **A. Unified end-to-end** | `certified_leakage_gap_of_dSeparated_graph` | Biggest rewrite, cleanest for double-blind, drops companion-artifact conceit entirely | Must explicitly carry Debt 1 + Debt 2 as hypotheses |
-| **B. Refinement-hook** | Same theorem, framed as a *verified hook* for future continuous abstraction/refinement | Sells future work | Heaviest forward claim |
-| **C. Minimal de-hedge** | Old paper, but bridge upgraded from `sorry` to proved, two-artifact note removed | Low risk | Undersells the new theorem |
+The QIF pipeline (proved, zero-sorry, in `CasualQIF/`):
 
-**Recommendation:** Direction A, with Debt 1 and Debt 2 closed (or at least
-narrowed) before submission. Direction A becomes substantively stronger if the
-*showcased instance* (linear chain `0→1→2`) is end-to-end with factorization
-**derived** (Debt 1 instance route) and capacity **witnessed** (Debt 2 dual
-witness).
+```
+d-separation
+  → conditional independence (Markov bridge)
+  → conditional DPI
+  → cut-set bound: stateLeakage P ≤ C
+  → entropy gap: H(S|T̃) ≤ H(S|T_full) + C
+```
 
-## Concrete title / abstract moves under Direction A
+Headline theorem:
 
-- Drop "Beyond Boolean Intersections" — title is fine but body must finally
-  earn it. Title already promises "Certified Shannon Bounds from D-Separated
-  Traces" — new code delivers exactly that.
-- Abstract: replace
-  > "This paper mechanizes the graph-semantic front end; a separate anonymized
-  > artifact mechanizes the finite quantitative information-flow chain"
+```lean
+theorem certified_leakage_gap_of_dSeparated_graph
+    ... : H_S_cond_Ttilde P ≤ H_S_cond_Tfull P + C
+```
 
-  with
+Two application-layer debts remain as hypotheses (see companion docs):
+- **Debt 1**: `FactorizesOverDAG` is the Global Markov Property stated as
+  assumption, not derived from product factorization.
+- **Debt 2**: `cutCapacity ≤ C` uses a tautological KKT wrapper; real
+  sufficiency needs a dual KL witness.
 
-  > "We mechanize the full chain — d-separation, conditional independence,
-  > conditional DPI, cut-set bound — as a single zero-sorry Lean 4 library,
-  > whose top theorem `certified_leakage_gap_of_dSeparated_graph` derives an
-  > operational entropy-gap inequality `H(S|T̃) ≤ H(S|T_full) + C` from a
-  > verified graph d-separation judgment, a stated DAG factorization
-  > hypothesis, and a cut-capacity certificate."
+Both are carried as explicit future work. They do not affect the graph-semantic
+core (Acts 1–2), which is self-contained and fully proved.
 
-- Contribution 6 collapses into Contribution 5: the bridge is in-repo.
-- Tech Debts (App. A): rewrite per `20260520_debt1_*` and `20260520_debt2_*`.
-- `\cite{companionqif}` references: delete all. Single self-contained artifact.
-- Engineering note ("two physically separate Lake projects"): delete.
+---
 
-## Open question for the rewrite
+## Why This Framing (Not the Old One)
 
-Whether to close Debt 1 instance-restricted (chain `0→1→2` only) or attempt
-general derivation of `FactorizesOverDAG` from product factorization for
-arbitrary DAGs. Instance route lets the headline read "**factorization derived,
-not assumed, on the showcased instance**" — strictly stronger than the old
-paper without overclaiming generality. See `20260520_debt1_factorization.md`.
+The previous pitch ("unified end-to-end QIF pipeline") buried the bisimulation
+as infrastructure and led with an information-theory headline at a PL venue.
+Problems:
+
+1. **Undersold the real contribution.** The bisimulation, counterexample, and
+   constructive decompiler are the hard math. Framing them as "Layer 1
+   soundness backbone" made the paper's strongest result invisible.
+
+2. **Oversold the QIF chain.** The "end-to-end" claim was hollow at two seams
+   (`FactorizesOverDAG` assumed, `cutCapacity` tautological). A reviewer who
+   reads the Lean type signatures sees the holes immediately.
+
+3. **Wrong venue language.** POPL reviewers care about type safety, compilers,
+   decompilers, ownership models, witness synthesis. "Shannon leakage bound" is
+   meaningful but not what excites a PL audience.
+
+The 3-act framing fixes all three:
+- The counterexample is the hook (memorable, impactful).
+- The compiler/decompiler is the core (native PL vocabulary).
+- The QIF pipeline is the payoff (but honest about its assumption boundary).
+
+---
+
+## Code Inventory
+
+### Proved, zero-sorry — in `popl27/` (needs porting to `CasualQIF/`)
+
+| File | Content |
+|---|---|
+| `Counterexample.lean` | Act 1: mechanized counterexample |
+| `Trail/Blocking.lean` | `DisjointSets`, `dSeparates`, trail blocking |
+| `Trail/Basic/BayesBall.lean` | Forward compiler: Bayes-Ball state tracking |
+| `BayesBall/*` | Forward compiler: certified path compression |
+| `MAGWalk/*` | MAGWalk IR and graph-connectivity bridge |
+| `TraceSynthesis/StaticRoute.lean` | Decompiler IR: static route and MAGWalk bridge |
+| `TraceSynthesis/OpenTrace/*` | Decompiler: bad-collider counting, normalization |
+| `TraceSynthesis/MinimalWitness.lean` | Decompiler: bad-count minimization |
+| `TraceSynthesis/Split.lean` | Decompiler: first-bad-collider extraction |
+| `TraceSynthesis/Graph.lean` | Decompiler: `ancestor_escape`, path survival |
+| `TraceSynthesis/Assembly.lean` | Decompiler: `route_improves_of_bad`, `activeWitness_of_not_dSeparated` |
+
+### Proved, zero-sorry — in `CasualQIF/` (already in place)
+
+| File | Content |
+|---|---|
+| `Graph/*` | DAG, reachability, moralization |
+| `DSeparation/*` | MAGWalk ↔ Reachable bisimulation, trail-blocking surface |
+| `Probability/*` | FinitePMF, entropy, KL, CMI, Markov chain |
+| `CausalModel/*` | Factorization bridge, conditional DPI |
+| `InformationFlow/*` | Cut-set bound, KKT certificate, state leakage |
+| `Main.lean` | Headline theorem: entropy gap inequality |
+
+### Not yet implemented
+
+| Item | Notes |
+|---|---|
+| `popl27/ → CasualQIF/` merge | Namespace adaptation (`DSeparation.` → `CausalQIF.DSeparation.`, `ℕ` → generic `V`) |
+| Debt 1 (product factorization) | Application-layer; see `20260520_debt1_factorization.md` |
+| Debt 2 (dual KL witness) | Application-layer; see `20260520_debt2_dual_witness.md` |
+
+---
+
+## Merge Engineering Notes
+
+**Namespace mismatch:** `popl27/` uses `DSeparation.` with `ℕ`-typed nodes.
+`CasualQIF/` uses `CausalQIF.DSeparation.` with generic `V : Type` nodes.
+Options:
+1. Keep `ℕ` specialization for the counterexample and decompiler (they are
+   inherently finite-constructive).
+2. Generalize to `V` where possible; keep `ℕ` for decidability-dependent proofs.
+
+**Module mapping (proposed):**
+
+| `popl27/` source | `CasualQIF/` target |
+|---|---|
+| `Counterexample.lean` | `DSeparation/Counterexample.lean` |
+| `Trail/Basic/BayesBall.lean` | `DSeparation/Path/BayesBall.lean` |
+| `TraceSynthesis/*` | `DSeparation/Synthesis/*` |
+| `ActiveRoute.lean` | `DSeparation/Path/ActiveRoute.lean` |
+| `Reverse.lean` | Absorbed into Synthesis pipeline |
+
+*Last updated: 2026-05-20. Reflects discovery of complete Act 1 + Act 2 code in popl27/.*

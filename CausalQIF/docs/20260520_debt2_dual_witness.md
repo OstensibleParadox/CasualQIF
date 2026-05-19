@@ -1,12 +1,29 @@
 # Debt 2 — Capacity Sufficiency via Dual KL Witness
 
 **Date:** 2026-05-20
-**Status:** Design note, not implemented.
+**Status:** Design note, not implemented. Valid as a strategy after the 2026-05-20 corrections below.
+**Layer:** Act 3 (QIF application layer). Does not affect Acts 1–2 (bisimulation core).
 **Companion:** `20260520_paper_repitch.md`, `20260520_debt1_factorization.md`.
+
+> **Note (2026-05-20):** Under the 3-act paper reframing, this debt is an
+> application-layer hypothesis in the QIF pipeline (Act 3), not a gap in the
+> core graph-semantic bisimulation (Acts 1–2). The bisimulation,
+> counterexample, and decompiler are self-contained and fully proved regardless
+> of whether this debt is closed.
+
+> **Validity review (2026-05-20):** The diagnosis is correct:
+> `KKT_Certificate.of_direct_bound` is tautological. The dual-witness producer
+> is the right replacement. The implementation details below need two
+> corrections: `CausalQIF` now already has `Entropy/KLDivergence.lean` with
+> `kl_nonneg_support`, and all dual KL bounds using natural `Real.log` must
+> account for the library's base-2 entropy definitions by a factor of
+> `Real.log 2`.
 
 ---
 
 ## What Debt 2 actually is
+
+*Note: The tautological `KKT_Certificate` structure originates from [FiniteQuerySandbox/ChannelCapacity.lean](file:///Users/ostensible_paradox/Documents/neurips26/verification/FiniteQuerySandbox/ChannelCapacity.lean), and its sufficiency metatheorem is marked as Open in [README.md:L240](file:///Users/ostensible_paradox/Documents/neurips26/verification/README.md#L240) of the `neurips26/verification` repository.*
 
 Inspecting `CausalQIF/InformationFlow/ChannelCapacity.lean`:
 
@@ -43,6 +60,11 @@ I(Y; Z | W) = E_w E_{y|w} D(P(Z | y, w) ‖ P(Z | w))
 
 Quantifying the KL bound uniformly over **all** y gives capacity sufficiency:
 the same witness ω caps `I_YZ_W P4` for any input distribution on Y.
+
+Scaling convention: the entropy definitions use `log₂`, while the KL witness
+uses Lean's natural `Real.log`. Therefore the natural-log inequality proves
+`I_YZ_W P4 * Real.log 2 ≤ C * Real.log 2`; the final bit-valued bound follows
+by dividing by the positive constant `Real.log 2`.
 
 This is a verified upper-bound certificate from a dual KL witness. It is
 **sufficiency only**; converse (some ω achieves the capacity) and
@@ -87,11 +109,13 @@ theorem I_YZ_W_le_of_dual_witness
         ∑ z, marginalYZW_at P4 y z w *
               Real.log (marginalYZW_at P4 y z w /
                         (marginalYW_at P4 y w * ω w z)) ≤
-        marginalYW_at P4 y w * C) :
+        marginalYW_at P4 y w * (C * Real.log 2)) :
     I_YZ_W P4 ≤ C
 ```
 
-`marginalYZW_at`, `marginalYW_at` extract the relevant joint slices; no
+`marginalYZW_at`, `marginalYW_at` are just projection-friendly wrappers around
+the existing four-variable marginals, e.g.
+`marginalYZWMass P4 (y,z,w)` and `marginalYWMass P4 (y,w)`. No
 `conditionalPMF` term appears.
 
 ## Why this clears the debt
@@ -104,7 +128,7 @@ suddenly has a real source.
    (ω, h_ω_sum, h_ω_pos, h_bound)
             │
             ▼
-   I_YZ_W_le_of_dual_witness  →  h_bound : I_YZ_W P4 ≤ C
+   I_YZ_W_le_of_dual_witness  →  h_cap : I_YZ_W P4 ≤ C
             │
             ▼
    KKT_Certificate.of_direct_bound  →  KKT_Certificate P4
@@ -113,12 +137,24 @@ suddenly has a real source.
    capacity_le_of_kkt           →  I_YZ_W P4 ≤ C
 ```
 
-`KKT_Certificate` stops being vacuous. Nothing downstream changes.
+`KKT_Certificate` stops being vacuous. For the main leakage theorem, the KKT
+wrapper is optional: `h_cap : I_YZ_W P4 ≤ C` can feed the existing cut-set
+bound directly because `cutCapacity P cut = I_YZ_W (pmf_from_vars P cut)`.
+Keeping the KKT converter is still useful as an auditor-facing certificate API.
 
 ## Refactor — extract `klDivergence` as a first-class operator
 
-`CausalQIF/Probability/Entropy.lean:13–` contains KL non-negativity inline but
-**no first-class `klDivergence` definition**. Extract:
+*Note: The raw KL math and `Real.log` operations currently exist inline in `neurips26/verification` at [InfoTheoryHelpers.lean:L98-L365](file:///Users/ostensible_paradox/Documents/neurips26/verification/InfoTheoryHelpers.lean#L98-L365).*
+
+Current state: `CausalQIF/Probability/Entropy/KLDivergence.lean` already
+contains the support-aware non-negativity lemma:
+
+```lean
+lemma kl_nonneg_support ...
+```
+
+What is still missing is only a first-class name for the summand. Add a small
+wrapper:
 
 ```lean
 def klDivergence {ι : Type} [Fintype ι] (p q : ι → ℝ) : ℝ :=
@@ -133,19 +169,24 @@ lemma klDivergence_nonneg
     0 ≤ klDivergence p q
 ```
 
-The existing proof at lines 22–55 transfers verbatim under the new name. Keep
-the operator over `ι → ℝ`, **not** over `FinitePMF`, so it reuses cleanly for
-both un-normalised contexts and conditional/joint slices.
+This should be a wrapper around `kl_nonneg_support`, not a rewrite of the KL
+proof. Keep the operator over `ι → ℝ`, **not** over `FinitePMF`, so it reuses
+cleanly for both normalised distributions and conditional/joint slices.
 
 ## Action plan
 
-1. **`CausalQIF/Probability/Entropy.lean`** — extract `def klDivergence` and
-   `klDivergence_nonneg`. Cosmetic refactor of the existing inline proof.
-   ~30 min. Verify whole `CausalQIF/` still builds zero-sorry.
-2. **`CausalQIF/InformationFlow/Duality.lean`** (new) — prove
-   `I_YZ_W_le_of_dual_witness` under-the-integral. Reuses `klDivergence_nonneg`
-   on the joint-slice / `marginalYW × ω` ratio. Skip `conditionalPMF`.
-3. **`CausalQIF/InformationFlow/ChannelCapacity.lean`** — add converter
+1. **`CausalQIF/Probability/Entropy/KLDivergence.lean`** — add
+   `def klDivergence` and a wrapper lemma `klDivergence_nonneg` around the
+   existing `kl_nonneg_support`. Verify whole `CausalQIF/` still builds
+   zero-sorry.
+2. **`CausalQIF/InformationFlow/Duality.lean`** (new) — add raw marginal
+   wrappers `marginalYZW_at` and `marginalYW_at`, then prove the natural-log
+   identity for `I_YZ_W P4 * Real.log 2`.
+3. **`CausalQIF/InformationFlow/Duality.lean`** — prove
+   `I_YZ_W_le_of_dual_witness` under-the-integral, with the premise bounded by
+   `marginalYW_at P4 y w * (C * Real.log 2)`. Reuse `klDivergence_nonneg` on
+   each `w`-slice against `marginalYW × ω`. Skip `conditionalPMF`.
+4. **`CausalQIF/InformationFlow/ChannelCapacity.lean`** — add converter
    `KKT_Certificate.of_dual_witness`:
    ```lean
    def KKT_Certificate.of_dual_witness
@@ -155,11 +196,12 @@ both un-normalised contexts and conditional/joint slices.
      KKT_Certificate.of_direct_bound P4 C
        (I_YZ_W_le_of_dual_witness P4 ω h_ω_sum h_ω_pos C h_bound)
    ```
-4. **`CausalQIF/Main.lean`** — corollary
+5. **`CausalQIF/Main.lean`** — corollary
    `stateLeakage_le_of_dual_witness` composing
-   `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le` with
-   `capacity_le_of_kkt ∘ KKT_Certificate.of_dual_witness`. Replaces the
-   `h_cap` premise with a concrete dual-witness premise.
+   `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le` directly
+   with `I_YZ_W_le_of_dual_witness` as the new `h_cap`. Optionally also expose
+   the `capacity_le_of_kkt ∘ KKT_Certificate.of_dual_witness` route for the
+   certificate API.
 
 ## Support assumption — strict positivity v1
 

@@ -1,12 +1,28 @@
 # Debt 1 — Deriving `FactorizesOverDAG` from Product Factorization
 
 **Date:** 2026-05-20
-**Status:** Design note, not implemented.
+**Status:** Design note, not implemented. Valid as a strategy after the 2026-05-20 corrections below.
+**Layer:** Act 3 (QIF application layer). Does not affect Acts 1–2 (bisimulation core).
 **Companion:** `20260520_paper_repitch.md`, `20260520_debt2_dual_witness.md`.
+
+> **Note (2026-05-20):** Under the 3-act paper reframing, this debt is an
+> application-layer hypothesis in the QIF pipeline (Act 3), not a gap in the
+> core graph-semantic bisimulation (Acts 1–2). The bisimulation,
+> counterexample, and decompiler are self-contained and fully proved regardless
+> of whether this debt is closed.
+
+> **Validity review (2026-05-20):** The diagnosis is correct: the current
+> `FactorizesOverDAG` is a semantic Global Markov hypothesis, not product
+> factorization. The execution target below must be sharpened, however: the
+> main leakage theorem needs the **four-variable conditional Markov premise**
+> `Probability.condMarkov (pmf_from_vars P cut)`, not only the older
+> three-variable `IsMarkovChain` bridge.
 
 ---
 
 ## What Debt 1 actually is
+
+*Note: This gap is tracked as an open problem in [README.md:L237](file:///Users/ostensible_paradox/Documents/neurips26/verification/README.md#L237) of the `neurips26/verification` repository, under [FiniteQuerySandbox/MarkovGenerator.lean](file:///Users/ostensible_paradox/Documents/neurips26/verification/FiniteQuerySandbox/MarkovGenerator.lean).*
 
 Inspecting `CausalQIF/CausalModel/Factorization.lean`:
 
@@ -86,20 +102,51 @@ theorem factorizesOverDAG_of_productFactorizes
     FactorizesOverDAG G CI (marshall P)
 ```
 
-where `marshall` projects the dependent-config PMF onto the flat tuple type the
-chain uses. Nothing downstream changes.
+This is a schematic architecture statement, not a Lean-ready theorem: `CI` and
+`marshall` must be fixed before implementation. For the current main theorem,
+the producer actually needed downstream is one of:
+
+```lean
+-- Direct producer for the cut-set DPI theorem.
+theorem condMarkov_of_productFactorizes_cut_instance
+    ... :
+    Probability.condMarkov (pmf_from_vars P cut)
+```
+
+or:
+
+```lean
+-- Producer for the existing semantic interface.
+theorem factorizesOverDAG_condMarkov_of_productFactorizes_cut_instance
+    ... :
+    FactorizesOverDAG G
+      (fun P' _ _ _ => Probability.condMarkov P')
+      (pmf_from_vars P cut)
+```
+
+The three-variable chain bridge remains useful for the standalone
+`condMutualInfo_eq_zero_of_factorizes_of_dSeparates` theorem, but it does not by
+itself discharge the four-variable leakage theorem. Nothing downstream in
+`InformationFlow/` or `Probability/` should change.
 
 ## Two levers — both available, both cheaper than the textbook route
 
 ### Lever 1 — Reuse the verified moral-graph engine
 
-The artifact already contains `dSeparated_iff_dSeparates` and the moral-graph
+The artifact already contains `dSeparated_iff_dSeparates` (fully mechanized at [DSeparation/Equivalence.lean:L134](file:///Users/ostensible_paradox/Documents/popl27/DSeparation/Equivalence.lean#L134)) and the moral-graph
 bisimulation. That is **exactly** the separation theory Step 3 needs. Route
 factorization → Global Markov *through the existing verified moral-graph
 reachability* rather than re-deriving separation. Layer 1 (the paper's current
 product) becomes the **engine that discharges Debt 1**. Major structural
 payoff for the re-pitch: the bisimulation isn't just a front-end contribution
 — it is the lever that closes the Verma–Pearl gap.
+
+Correction for implementation: this theorem is not currently available inside
+`CausalQIF`. The `popl27` version is over `ℕ`-labelled DAGs and requires
+`DisjointSets X Y Z`. Current `CausalQIF` exports only
+`DAG.dSeparated ↔ no MAGWalk`; it does **not** yet export
+`DAG.dSeparated ↔ dSeparates`. Therefore Lever 1 requires a real port/adaptation
+before it can support a general product-factorization theorem.
 
 ### Lever 2 — Instance escape hatch
 
@@ -126,12 +173,20 @@ generality.
 1. Pick **instance-restricted** for POPL submission.
 2. Implement upstream module
    `CausalQIF/CausalModel/ProductFactorization.lean`:
-   - `ProductFactorizes_chain3 G v0 v1 v2 P` (specialised predicate for the
-     three-node chain).
+   - `ProductFactorizes_chain3 G v0 v1 v2 P` for the older 3-variable CMI
+     bridge.
    - `factorizesOverDAG_isMarkovChain_of_productFactorizes_chain3` proving
      `ProductFactorizes_chain3 ... → FactorizesOverDAG G (isMarkovChainNodeCI v0 v1 v2) P`.
-3. Marshalling: state directly on the flat `α × β × γ` type the chain uses; no
-   dependent-config layer needed for the chain instance.
+   - A separate leakage-instance producer proving either
+     `Probability.condMarkov (pmf_from_vars P cut)` directly, or the
+     corresponding `FactorizesOverDAG ... (pmf_from_vars P cut)` premise used
+     by `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le`.
+     This can be represented as a four-variable conditional chain
+     `X ⟂ Z | Y,W`, or as a three-node chain after collapsing `(Y,W)` into one
+     middle variable and transporting by an equivalence.
+3. Marshalling: for the 3-variable bridge, state directly on the flat
+   `α × β × γ` type; for the leakage theorem, state directly on the flat
+   four-variable cut PMF consumed by `pmf_from_vars`.
 4. Defer the general theorem to "Future work — general Verma–Pearl mechanization."
 5. Open `CausalQIF.CausalModel.ProductFactorization` namespace; do **not** edit
    `Factorization.lean` (preserve current `FactorizesOverDAG` as the existing
@@ -151,8 +206,12 @@ generality.
 
 Even with the instance route, the paper claim is bounded:
 
-- Closed: on the linear chain `0→1→2`, product factorization ⇒ `IsMarkovChain`
-  ⇒ `condMutualInfo = 0`, all in `CausalQIF`, zero-sorry.
+- Closed after implementation: on the showcased instance, explicit product
+  factorization produces the exact conditional-independence premise consumed by
+  the QIF theorem. For the old 3-variable bridge this is
+  `ProductFactorizes_chain3 ⇒ IsMarkovChain ⇒ condMutualInfo = 0`; for the
+  leakage theorem this must be the four-variable
+  `ProductFactorizes_cut_instance ⇒ condMarkov (pmf_from_vars P cut)`.
 - Open: general DAG `FactorizesOverDAG`. Listed as future work.
 
 This matches the paper's existing precedent of using the linear chain as the

@@ -84,14 +84,14 @@ lemma marginalRightMass_nonneg (P : FinitePMF (α × β)) (y : β) :
 lemma marginalLeftMass_sum_one (P : FinitePMF (α × β)) :
     ∑ x : α, marginalLeftMass P x = 1 := by
   unfold marginalLeftMass
-  rw [← Fintype.sum_prod_type]
+  rw [← Finset.sum_product]
   exact P.sum_one
 
 lemma marginalRightMass_sum_one (P : FinitePMF (α × β)) :
     ∑ y : β, marginalRightMass P y = 1 := by
   unfold marginalRightMass
   rw [Finset.sum_comm]
-  rw [← Fintype.sum_prod_type]
+  rw [← Finset.sum_product]
   exact P.sum_one
 
 def marginalizeLeafPMF (P : FinitePMF (α × β)) : FinitePMF α where
@@ -101,8 +101,7 @@ def marginalizeLeafPMF (P : FinitePMF (α × β)) : FinitePMF α where
   sum_one := by
     calc
       ∑ x : α, ∑ leaf : β, P.pmf (x, leaf)
-          = ∑ p : α × β, P.pmf p := by
-            rw [← Fintype.sum_prod_type]
+          = ∑ p : α × β, P.pmf p := (Finset.sum_product (f := P.pmf) (s := univ) (t := univ)).symm
       _ = 1 := P.sum_one
 
 /-! ## Three-variable marginals -/
@@ -115,6 +114,64 @@ def marginalXZMass (P : FinitePMF (α × β × γ)) (xz : α × γ) : ℝ :=
 
 def marginalYZMass (P : FinitePMF (α × β × γ)) (yz : β × γ) : ℝ :=
   ∑ x : α, P.pmf (x, yz.1, yz.2)
+
+/-! ## Pullback Lemmas -/
+
+lemma entropyOf_mul_log2 {η : Type} [Fintype η] [DecidableEq η] (mass : η → ℝ) :
+    entropyOf mass * Real.log 2 = -∑ x : η, mass x * Real.log (mass x) := by
+  unfold entropyOf negMulLog2
+  have hlog2_ne_zero : Real.log 2 ≠ 0 := by positivity
+  rw [Finset.sum_mul]
+  calc
+    ∑ x : η, (-(mass x * (Real.log (mass x) / Real.log 2))) * Real.log 2
+        = ∑ x : η, -(mass x * Real.log (mass x)) := by
+          refine Finset.sum_congr rfl (fun x _ => ?_)
+          field_simp [hlog2_ne_zero]
+    _ = -∑ x : η, mass x * Real.log (mass x) := by rw [Finset.sum_neg_distrib]
+
+lemma marginalXZMass_pullback (P : FinitePMF (α × β × γ)) (f : α × γ → ℝ) :
+    ∑ xz : α × γ, marginalXZMass P xz * f xz =
+    ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (a, c) := by
+  unfold marginalXZMass
+  calc
+    ∑ xz : α × γ, (∑ y : β, P.pmf (xz.1, y, xz.2)) * f xz
+        = ∑ xz : α × γ, ∑ y : β, P.pmf (xz.1, y, xz.2) * f xz := by
+          refine Finset.sum_congr rfl (fun xz _ => ?_)
+          rw [Finset.sum_mul]
+    _ = ∑ y : β, ∑ xz : α × γ, P.pmf (xz.1, y, xz.2) * f xz := by rw [Finset.sum_comm]
+    _ = ∑ y : β, ∑ a : α, ∑ c : γ, P.pmf (a, y, c) * f (a, c) := by
+      refine Finset.sum_congr rfl (fun y _ => ?_)
+      rw [Fintype.sum_prod_type]
+    _ = ∑ a : α, ∑ y : β, ∑ c : γ, P.pmf (a, y, c) * f (a, c) := by rw [Finset.sum_comm]
+    _ = ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (a, c) := rfl
+
+lemma marginalYZMass_pullback (P : FinitePMF (α × β × γ)) (f : β × γ → ℝ) :
+    ∑ yz : β × γ, marginalYZMass P yz * f yz =
+    ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (b, c) := by
+  unfold marginalYZMass
+  calc
+    ∑ yz : β × γ, (∑ x : α, P.pmf (x, yz.1, yz.2)) * f yz
+        = ∑ yz : β × γ, ∑ x : α, P.pmf (x, yz.1, yz.2) * f yz := by
+          refine Finset.sum_congr rfl (fun yz _ => ?_)
+          rw [Finset.sum_mul]
+    _ = ∑ x : α, ∑ yz : β × γ, P.pmf (x, yz.1, yz.2) * f yz := by rw [Finset.sum_comm]
+    _ = ∑ x : α, ∑ b : β, ∑ c : γ, P.pmf (x, b, c) * f (b, c) := by
+      refine Finset.sum_congr rfl (fun x _ => ?_)
+      rw [Fintype.sum_prod_type]
+    _ = ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f (b, c) := rfl
+
+lemma marginalZMass_pullback (P : FinitePMF (α × β × γ)) (f : γ → ℝ) :
+    ∑ z : γ, marginalZMass P z * f z =
+    ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f c := by
+  unfold marginalZMass
+  calc
+    ∑ c : γ, (∑ a : α, ∑ b : β, P.pmf (a, b, c)) * f c
+        = ∑ c : γ, ∑ a : α, ∑ b : β, P.pmf (a, b, c) * f c := by
+          refine Finset.sum_congr rfl (fun c _ => ?_)
+          simp_rw [Finset.sum_mul]
+    _ = ∑ a : α, ∑ b : β, ∑ c : γ, P.pmf (a, b, c) * f c := by
+      rw [Finset.sum_comm]
+      refine Finset.sum_congr rfl (fun a _ => Finset.sum_comm)
 
 end
 

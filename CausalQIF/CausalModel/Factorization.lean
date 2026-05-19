@@ -42,7 +42,7 @@ theorem condMutualInfo_eq_zero_of_factorizes_of_dSeparates
     (h_factor : FactorizesOverDAG G isMarkovChainNodeCI P)
     (h_dsep : DSeparation.dSeparates G ({0} : Finset ℕ) ({2} : Finset ℕ) ({1} : Finset ℕ)) :
     Probability.I_A_cond_C_B P = 0 :=
-  Probability.cond_mutual_info_zero_of_markov P
+  Probability.condMutualInfo_eq_zero_of_isMarkovChain P
     (isMarkovChain_of_factorizes_dSeparates G P h_factor h_dsep)
 
 end

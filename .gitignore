@@ -11,6 +11,7 @@ test_*.lean
 
 # Local tooling
 .claude/
+.antigravitycli/
 
 # macOS
 .DS_Store

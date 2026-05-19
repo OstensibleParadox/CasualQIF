@@ -1,0 +1,28 @@
+# Lean
+.lake/
+.lake*/
+lakefile *.lean
+lake-manifest *.json
+lean-toolchain *
+
+# Local proof experiments
+scratch/
+test_*.lean
+
+# Local tooling
+.claude/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.pdf

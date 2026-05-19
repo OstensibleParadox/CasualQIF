@@ -36,17 +36,17 @@ lemma condProductMass_nonneg (P : FinitePMF (α × β × γ)) (xyz : α × β ×
       (marginalTriple_SndThd_nonneg P (xyz.2.1, xyz.2.2)))
     (marginalTriple_Thd_nonneg P xyz.2.2)
 
-lemma pmf_le_marginalXZMass (P : FinitePMF (α × β × γ)) (x : α) (y : β) (z : γ) :
+lemma pmf_le_marginalTriple_FstThd (P : FinitePMF (α × β × γ)) (x : α) (y : β) (z : γ) :
     P.pmf (x, y, z) ≤ marginalTriple_FstThd P (x, z) := by
   unfold marginalTriple_FstThd
   exact Finset.single_le_sum (fun y' _ => P.pmf_nonneg (x, y', z)) (Finset.mem_univ y)
 
-lemma pmf_le_marginalYZMass (P : FinitePMF (α × β × γ)) (x : α) (y : β) (z : γ) :
+lemma pmf_le_marginalTriple_SndThd (P : FinitePMF (α × β × γ)) (x : α) (y : β) (z : γ) :
     P.pmf (x, y, z) ≤ marginalTriple_SndThd P (y, z) := by
   unfold marginalTriple_SndThd
   exact Finset.single_le_sum (fun x' _ => P.pmf_nonneg (x', y, z)) (Finset.mem_univ x)
 
-lemma marginalTriple_FstThd_le_marginalZMass (P : FinitePMF (α × β × γ)) (x : α) (z : γ) :
+lemma marginalTriple_FstThd_le_marginalTriple_Thd (P : FinitePMF (α × β × γ)) (x : α) (z : γ) :
     marginalTriple_FstThd P (x, z) ≤ marginalTriple_Thd P z := by
   have h_nonneg : ∀ x : α, 0 ≤ marginalTriple_FstThd P (x, z) :=
     fun x => marginalTriple_FstThd_nonneg P (x, z)
@@ -62,11 +62,11 @@ lemma condProductMass_pos_of_pmf_ne_zero
   have hp_pos : 0 < P.pmf (x, y, z) :=
     lt_of_le_of_ne (P.pmf_nonneg (x, y, z)) (Ne.symm hxyz)
   have hxz_pos : 0 < marginalTriple_FstThd P (x, z) :=
-    lt_of_lt_of_le hp_pos (pmf_le_marginalXZMass P x y z)
+    lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_FstThd P x y z)
   have hyz_pos : 0 < marginalTriple_SndThd P (y, z) :=
-    lt_of_lt_of_le hp_pos (pmf_le_marginalYZMass P x y z)
+    lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_SndThd P x y z)
   have hz_pos : 0 < marginalTriple_Thd P z :=
-    lt_of_lt_of_le hxz_pos (marginalTriple_FstThd_le_marginalZMass P x z)
+    lt_of_lt_of_le hxz_pos (marginalTriple_FstThd_le_marginalTriple_Thd P x z)
   unfold condProductMass
   exact div_pos (mul_pos hxz_pos hyz_pos) hz_pos
 
@@ -74,7 +74,7 @@ lemma condProductMass_sum_fiber (P : FinitePMF (α × β × γ)) (z : γ) :
     (∑ x : α, ∑ y : β, condProductMass P (x, y, z)) = marginalTriple_Thd P z := by
   by_cases hz : marginalTriple_Thd P z = 0
   · have hxz_zero : ∀ x : α, marginalTriple_FstThd P (x, z) = 0 := by
-      intro x; have hle := marginalTriple_FstThd_le_marginalZMass P x z
+      intro x; have hle := marginalTriple_FstThd_le_marginalTriple_Thd P x z
       have hnonneg := marginalTriple_FstThd_nonneg P (x, z); linarith
     simp [condProductMass, hz, hxz_zero]
   · have hz_pos : 0 < marginalTriple_Thd P z := lt_of_le_of_ne (marginalTriple_Thd_nonneg P z) (Ne.symm hz)

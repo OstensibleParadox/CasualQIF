@@ -11,7 +11,7 @@ noncomputable section
 variable {α β γ δ : Type} [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
 variable [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
 
-lemma sum_pmf_log_marginalXZMass (P : FinitePMF (α × β × γ)) :
+lemma sum_pmf_log_marginalTriple_FstThd (P : FinitePMF (α × β × γ)) :
     (∑ xyz : α × β × γ,
       P.pmf xyz * Real.log (marginalTriple_FstThd P (xyz.1, xyz.2.2)))
       =
@@ -41,7 +41,7 @@ lemma sum_pmf_log_marginalXZMass (P : FinitePMF (α × β × γ)) :
           rw [← Fintype.sum_prod_type' (fun x z =>
             marginalTriple_FstThd P (x, z) * Real.log (marginalTriple_FstThd P (x, z)))]
 
-lemma sum_pmf_log_marginalYZMass (P : FinitePMF (α × β × γ)) :
+lemma sum_pmf_log_marginalTriple_SndThd (P : FinitePMF (α × β × γ)) :
     (∑ xyz : α × β × γ,
       P.pmf xyz * Real.log (marginalTriple_SndThd P (xyz.2.1, xyz.2.2)))
       =
@@ -72,7 +72,7 @@ lemma sum_pmf_log_marginalYZMass (P : FinitePMF (α × β × γ)) :
           rw [← Fintype.sum_prod_type' (fun y z =>
             marginalTriple_SndThd P (y, z) * Real.log (marginalTriple_SndThd P (y, z)))]
 
-lemma sum_pmf_log_marginalZMass (P : FinitePMF (α × β × γ)) :
+lemma sum_pmf_log_marginalTriple_Thd (P : FinitePMF (α × β × γ)) :
     (∑ xyz : α × β × γ,
       P.pmf xyz * Real.log (marginalTriple_Thd P xyz.2.2))
       =
@@ -128,11 +128,11 @@ lemma condMutualInfo_kl_identity (P : FinitePMF (α × β × γ)) :
       have hp_pos : 0 < P.pmf (x, y, z) :=
         lt_of_le_of_ne (P.pmf_nonneg (x, y, z)) (Ne.symm hxyz)
       have hxz_pos : 0 < marginalTriple_FstThd P (x, z) :=
-        lt_of_lt_of_le hp_pos (pmf_le_marginalXZMass P x y z)
+        lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_FstThd P x y z)
       have hyz_pos : 0 < marginalTriple_SndThd P (y, z) :=
-        lt_of_lt_of_le hp_pos (pmf_le_marginalYZMass P x y z)
+        lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_SndThd P x y z)
       have hz_pos : 0 < marginalTriple_Thd P z :=
-        lt_of_lt_of_le hxz_pos (marginalTriple_FstThd_le_marginalZMass P x z)
+        lt_of_lt_of_le hxz_pos (marginalTriple_FstThd_le_marginalTriple_Thd P x z)
       have hq_pos : 0 < condProductMass P (x, y, z) :=
         condProductMass_pos_of_pmf_ne_zero P (x, y, z) hxyz
       have hlogq : Real.log (condProductMass P (x, y, z))
@@ -163,8 +163,8 @@ lemma condMutualInfo_kl_identity (P : FinitePMF (α × β × γ)) :
             exact hterm xyz
       _ = A - B - C + D := by
             rw [Finset.sum_add_distrib, Finset.sum_sub_distrib, Finset.sum_sub_distrib]
-            rw [sum_pmf_log_marginalXZMass P, sum_pmf_log_marginalYZMass P,
-              sum_pmf_log_marginalZMass P]
+            rw [sum_pmf_log_marginalTriple_FstThd P, sum_pmf_log_marginalTriple_SndThd P,
+              sum_pmf_log_marginalTriple_Thd P]
   have hHXZ := entropyOf_mul_log2 (marginalTriple_FstThd P)
   have hHYZ := entropyOf_mul_log2 (marginalTriple_SndThd P)
   have hHZ := entropyOf_mul_log2 (marginalTriple_Thd P)
@@ -211,8 +211,8 @@ theorem condMutualInfo_eq_zero_of_condIndep (P : FinitePMF (α × β × γ))
     · rcases xyz with ⟨a, b, z⟩; have h_eq := hIndep a b z
       have hz_pos : 0 < marginalTriple_Thd P z := by
         have hp_pos : 0 < P.pmf (a, b, z) := lt_of_le_of_ne (P.pmf_nonneg _) (Ne.symm hx)
-        have hXZ_pos : 0 < marginalTriple_FstThd P (a, z) := lt_of_lt_of_le hp_pos (pmf_le_marginalXZMass P a b z)
-        exact lt_of_lt_of_le hXZ_pos (marginalTriple_FstThd_le_marginalZMass P a z)
+        have hXZ_pos : 0 < marginalTriple_FstThd P (a, z) := lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_FstThd P a b z)
+        exact lt_of_lt_of_le hXZ_pos (marginalTriple_FstThd_le_marginalTriple_Thd P a z)
       have hq_eq : condProductMass P (a, b, z) = P.pmf (a, b, z) := by
         unfold condProductMass; rw [← h_eq]; field_simp [hz_pos.ne']
       simp [hq_eq, hx]

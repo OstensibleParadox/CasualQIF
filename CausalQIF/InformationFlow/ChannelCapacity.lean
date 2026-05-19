@@ -40,7 +40,7 @@ lemma marginalQuad_Snd_sum_one {α β γ δ : Type} [Fintype α] [Fintype β] [F
     _ = 1 := by
       simpa [Fintype.sum_prod_type] using P.sum_one
 
-lemma marginalQuad_Snd_eq_marginalYWMass_on_unit {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
+lemma marginalQuad_Snd_eq_marginalQuad_SndFth_on_unit {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ]
     (P : FinitePMF (α × β × γ × Unit)) (y : β) :
     marginalQuad_Snd P y = marginalQuad_SndFth P (y, ()) := by

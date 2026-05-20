@@ -1,4 +1,5 @@
 import CausalQIF.InformationFlow.CutSetBound
+import CausalQIF.InformationFlow.Duality
 
 /-!
 # CausalQIF Main Module
@@ -94,6 +95,28 @@ theorem linearChain_stateLeakage_le_one_of_dSeparates
     (h_cap : stateLeakage P ≤ 1) :
     stateLeakage P ≤ 1 :=
   h_cap
+
+/--
+The Shannon leakage bound derived from a dual KL witness.
+Composes the cut-set bound with the variational duality theorem.
+-/
+theorem stateLeakage_le_of_dual_witness
+    {V : Type} [DecidableEq V] [Fintype V] (vX vY vZ vW : V)
+    (G : DAG V)
+    (P : FinitePMF (State × VisibleTrace × MissingTrace))
+    (cut : CutSetData State VisibleTrace MissingTrace CutVars)
+    (ω : VisibleTrace → MissingTrace → ℝ)
+    (h_ω_sum : ∀ w, ∑ z, ω w z = 1)
+    (h_ω_pos : ∀ w z, 0 < ω w z)
+    (C : ℝ)
+    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmf_from_vars P cut))
+    (h_dsep : dSeparates G ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V))
+    (h_bound : ∑ y, ∑ z, ∑ w, (pmfMargOutFst (pmf_from_vars P cut)).pmf (y, z, w) * 
+               Real.log ((pmfMargOutFst (pmf_from_vars P cut)).pmf (y, z, w) / (marginalTriple_FstThd (pmfMargOutFst (pmf_from_vars P cut)) (y, w) * ω w z)) 
+               ≤ C * Real.log 2) :
+    stateLeakage P ≤ C :=
+  stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le vX vY vZ vW G P cut C h_factor h_dsep
+    (condMutualInfo_le_of_dual_witness (pmfMargOutFst (pmf_from_vars P cut)) ω h_ω_sum h_ω_pos C h_bound)
 
 end
 

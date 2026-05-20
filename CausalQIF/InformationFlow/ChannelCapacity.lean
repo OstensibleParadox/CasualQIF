@@ -1,4 +1,5 @@
 import CausalQIF.Probability.Entropy
+import CausalQIF.InformationFlow.Duality
 
 open Finset
 open scoped BigOperators Real
@@ -102,7 +103,7 @@ theorem capacity_le_of_kkt
 Construct a KKT certificate from a direct bound on condMutualInfo (pmfMargOutFst P4) and the actual
 marginal distribution p(y) = marginalQuad_Snd(P4)(y).
 
-The per-symbol terms are all set to condMutualInfo (pmfMargOutFst P4)(P4), so the weighted decomposition
+The per-symbol terms are all set to condMutualInfo (pmfMargOutFst P4), so the weighted decomposition
 holds because Σ_y p(y) = 1.
 -/
 def KKT_Certificate.of_direct_bound
@@ -128,6 +129,29 @@ def KKT_Certificate.of_direct_bound
     h_p_star_nonneg := marginalQuad_Snd_nonneg P4
     h_p_star_sum_one := marginalQuad_Snd_sum_one P4
   }
+
+/-! ## Non-tautological: certificate from a dual witness -/
+
+/--
+Construct a KKT certificate from a dual KL witness ω(z | w).
+
+This is the non-tautological producer for capacity bounds: instead of assuming 
+I(Y; Z | W) ≤ C, we derive it from a checkable variational witness.
+-/
+def KKT_Certificate.of_dual_witness
+    {α β γ δ : Type}
+    [Fintype α] [Fintype β] [Fintype γ] [Fintype δ]
+    [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
+    (P4 : FinitePMF (α × β × γ × δ))
+    (ω : δ → γ → ℝ)
+    (h_ω_sum : ∀ w, ∑ z, ω w z = 1)
+    (h_ω_pos : ∀ w z, 0 < ω w z)
+    (C : ℝ)
+    (h_bound : ∑ y, ∑ z, ∑ w, (pmfMargOutFst P4).pmf (y, z, w) * 
+               Real.log ((pmfMargOutFst P4).pmf (y, z, w) / (marginalTriple_FstThd (pmfMargOutFst P4) (y, w) * ω w z)) 
+               ≤ C * Real.log 2) : KKT_Certificate P4 :=
+  KKT_Certificate.of_direct_bound P4 C
+    (condMutualInfo_le_of_dual_witness (pmfMargOutFst P4) ω h_ω_sum h_ω_pos C h_bound)
 
 end
 

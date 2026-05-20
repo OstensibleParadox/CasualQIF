@@ -55,6 +55,19 @@ lemma kl_nonneg_support {ι : Type} [Fintype ι] [DecidableEq ι]
     linarith [hp_sum, hq_sum]
   linarith [hsum, h_eq]
 
+def klDivergence {ι : Type} [Fintype ι] (p q : ι → ℝ) : ℝ :=
+  ∑ x, p x * Real.log (p x / q x)
+
+lemma klDivergence_nonneg
+    {ι : Type} [Fintype ι] [DecidableEq ι] (p q : ι → ℝ)
+    (hp_nonneg : ∀ x, 0 ≤ p x)
+    (hq_nonneg : ∀ x, 0 ≤ q x)
+    (h_support : ∀ x, p x ≠ 0 → 0 < q x)
+    (hp_sum_one : ∑ x, p x = 1)
+    (hq_sum_one : ∑ x, q x = 1) :
+    0 ≤ klDivergence p q :=
+  kl_nonneg_support p q hp_nonneg hq_nonneg h_support hp_sum_one hq_sum_one
+
 end
 
 end CausalQIF.Probability

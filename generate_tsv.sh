@@ -1,0 +1,70 @@
+#!/bin/bash
+mkdir -p .antigravitycli/plans
+echo -e "old_name\tnew_name\tkind\tfile\tcallsite_count" > .antigravitycli/plans/phase1c-renames.tsv
+
+add_rename() {
+    old=$1
+    new=$2
+    kind=$3
+    file=$4
+    # Count occurrences across all lean files, subtract 1 for the definition
+    count=$(grep -r -w "$old" CausalQIF | wc -l)
+    count=$((count - 1))
+    if [ $count -lt 0 ]; then count=0; fi
+    echo -e "$old\t$new\t$kind\t$file\t$count" >> .antigravitycli/plans/phase1c-renames.tsv
+}
+
+add_rename pmf_from_vars pmfFromVars def CausalQIF/InformationFlow/CutSetBound/Defs.lean
+add_rename H_S_cond_Tfull hSCondTfull def CausalQIF/InformationFlow/CutSetBound/Defs.lean
+add_rename H_S_cond_Ttilde hSCondTtilde def CausalQIF/InformationFlow/CutSetBound/Defs.lean
+add_rename marginalQuad_FstFth marginalQuadFstFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_FstSndFth marginalQuadFstSndFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_FstThdFth marginalQuadFstThdFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_Fth marginalQuadFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_SndFth marginalQuadSndFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_SndThdFth marginalQuadSndThdFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalQuad_ThdFth marginalQuadThdFth def CausalQIF/Probability/Entropy/ChainRule/Marginals.lean
+add_rename marginalPair_Fst marginalPairFst def CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalPair_Snd marginalPairSnd def CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstThd marginalTripleFstThd def CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_SndThd marginalTripleSndThd def CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_Thd marginalTripleThd def CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstSnd marginalTripleFstSnd def CausalQIF/Probability/Markov.lean
+add_rename marginalTriple_Snd marginalTripleSnd def CausalQIF/Probability/Markov.lean
+
+add_rename pmf_from_vars_apply pmfFromVars_apply lemma CausalQIF/InformationFlow/CutSetBound/Basic.lean
+add_rename stateLeakage_eq_condMutualInfo_pmfMargOutSnd_pmf_from_vars stateLeakage_eq_condMutualInfo_pmfMargOutSnd_pmfFromVars lemma CausalQIF/InformationFlow/CutSetBound/Lemmas.lean
+add_rename marginalQuad_FstFth_eq_stateVisibleMass marginalQuadFstFth_eq_stateVisibleMass lemma CausalQIF/InformationFlow/CutSetBound/Basic.lean
+add_rename marginalQuad_Fth_eq_visibleMass marginalQuadFth_eq_visibleMass lemma CausalQIF/InformationFlow/CutSetBound/Basic.lean
+add_rename marginalQuad_ThdFth_eq_visibleMissingMass_swap marginalQuadThdFth_eq_visibleMissingMass_swap lemma CausalQIF/InformationFlow/CutSetBound/Basic.lean
+add_rename marginalQuad_FstThdFth_eq_P_swap marginalQuadFstThdFth_eq_P_swap lemma CausalQIF/InformationFlow/CutSetBound/Basic.lean
+
+add_rename marginalPair_Fst_nonneg marginalPairFst_nonneg lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalPair_Fst_sum_one marginalPairFst_sum_one lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalPair_Snd_nonneg marginalPairSnd_nonneg lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalPair_Snd_sum_one marginalPairSnd_sum_one lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstThd_nonneg marginalTripleFstThd_nonneg lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstThd_pullback marginalTripleFstThd_pullback lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstThd_sum_thd marginalTripleFstThd_sum_thd lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_SndThd_nonneg marginalTripleSndThd_nonneg lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_SndThd_pullback marginalTripleSndThd_pullback lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_SndThd_sum_thd marginalTripleSndThd_sum_thd lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_Thd_nonneg marginalTripleThd_nonneg lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_Thd_pullback marginalTripleThd_pullback lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_Thd_sum_one marginalTripleThd_sum_one lemma CausalQIF/Probability/FinitePMF/Marginal.lean
+add_rename marginalTriple_FstThd_le_marginalTriple_Thd marginalTripleFstThd_le_marginalTripleThd lemma CausalQIF/Probability/Entropy/Basic.lean
+add_rename pmf_le_marginalTriple_FstThd pmf_le_marginalTripleFstThd lemma CausalQIF/Probability/Entropy/Basic.lean
+add_rename pmf_le_marginalTriple_SndThd pmf_le_marginalTripleSndThd lemma CausalQIF/Probability/Entropy/Basic.lean
+add_rename sum_pmf_log_marginalTriple_FstThd sum_pmf_log_marginalTripleFstThd lemma CausalQIF/Probability/Entropy/Identities/SumLogIdentities.lean
+add_rename sum_pmf_log_marginalTriple_SndThd sum_pmf_log_marginalTripleSndThd lemma CausalQIF/Probability/Entropy/Identities/SumLogIdentities.lean
+add_rename sum_pmf_log_marginalTriple_Thd sum_pmf_log_marginalTripleThd lemma CausalQIF/Probability/Entropy/Identities/SumLogIdentities.lean
+
+add_rename cond_mutual_info_pair_fst_fth_reshape condMutualInfo_pmfPairFstFthReshape lemma CausalQIF/Probability/Entropy/ChainRule/Bridges/Basic.lean
+add_rename cond_mutual_info_pair_snd_fth_reshape condMutualInfo_pmfPairSndFthReshape lemma CausalQIF/Probability/Entropy/ChainRule/Bridges/Basic.lean
+add_rename cond_mutual_info_marg_out_fst condMutualInfo_pmfMargOutFst lemma CausalQIF/Probability/Entropy/ChainRule/Bridges/Lemmas.lean
+add_rename cond_mutual_info_marg_out_snd condMutualInfo_pmfMargOutSnd lemma CausalQIF/Probability/Entropy/ChainRule/Bridges/Lemmas.lean
+add_rename cond_mutual_info_pair_fst_snd condMutualInfo_pmfPairFstSnd lemma CausalQIF/Probability/Entropy/ChainRule/Bridges/Lemmas.lean
+add_rename cond_mutual_info_pair_fst_snd_eq_add_marg_out_fst_add_pair_snd_fth condMutualInfo_pmfPairFstSnd_eq_add_pmfMargOutFst_add_pmfPairSndFthReshape lemma CausalQIF/Probability/Entropy/ChainRule/Decomposition.lean
+add_rename cond_mutual_info_pair_fst_snd_eq_add_marg_out_snd_add_pair_fst_fth condMutualInfo_pmfPairFstSnd_eq_add_pmfMargOutSnd_add_pmfPairFstFthReshape lemma CausalQIF/Probability/Entropy/ChainRule/Decomposition.lean
+add_rename cond_mutual_info_pair_snd_fth_reshape_eq_zero_of_cond_markov condMutualInfo_pmfPairSndFthReshape_eq_zero_of_condMarkov lemma CausalQIF/Probability/Entropy/ChainRule/Decomposition.lean
+

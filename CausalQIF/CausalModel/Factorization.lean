@@ -48,6 +48,31 @@ theorem condMutualInfo_eq_zero_of_factorizes_of_dSeparates
   Probability.condMutualInfo_eq_zero_of_isMarkovChain P
     (isMarkovChain_of_factorizes_of_dSeparates v0 v1 v2 G P h_factor h_dsep)
 
+/-! ## 4-Variable condMarkov Adapter -/
+
+variable {δ : Type} [Fintype δ] [DecidableEq δ]
+
+/-- Node-set-premised adapter pinning the cut-PMF tuple layout
+`(State, CutVars, MissingTrace, VisibleTrace)`.
+
+Argument order matches `CondIndepPredicate`'s `(P, X, Y, Z)`: position 2 (`Y`) is
+the d-separation target and position 3 (`Z`) is the conditioning set. -/
+def condMarkovNodeCI {V : Type} [DecidableEq V] [Fintype V] (vX vY vZ vW : V)
+    (P : Probability.FinitePMF (α × β × γ × δ)) (X Y Z : Finset V) : Prop :=
+  X = ({vX} : Finset V) →
+    Y = ({vZ} : Finset V) →
+      Z = ({vY, vW} : Finset V) →
+        Probability.condMarkov P
+
+theorem condMarkov_of_factorizes_of_dSeparates_fourVar
+    {V : Type} [DecidableEq V] [Fintype V] (vX vY vZ vW : V)
+    (G : Graph.DAG V) (P : Probability.FinitePMF (α × β × γ × δ))
+    (h_factor : FactorizesOverDAG G (condMarkovNodeCI (α := α) (β := β) (γ := γ) (δ := δ) vX vY vZ vW) P)
+    (h_dsep : DSeparation.dSeparates G
+      ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V)) :
+    Probability.condMarkov P :=
+  h_factor ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V) h_dsep rfl rfl rfl
+
 end
 
 end CausalQIF.CausalModel

@@ -19,7 +19,7 @@ theorem cond_dpi (P : FinitePMF (α × β × γ × δ)) (h : condMarkov P) :
   have h_chain_x : condMutualInfo (pmfMargOutSnd P) + condMutualInfo (pmfPairFstFthReshape P) = condMutualInfo (pmfMargOutFst P) + condMutualInfo (pmfPairSndFthReshape P) := by
     rw [cond_mutual_info_marg_out_snd, cond_mutual_info_pair_fst_fth_reshape, cond_mutual_info_marg_out_fst, cond_mutual_info_pair_snd_fth_reshape]
     ring
-  have h_nonneg := cond_mutual_info_pair_fst_fth_reshape_nonneg P
+  have h_nonneg := condMutualInfo_nonneg (pmfPairFstFthReshape P)
   have h_zero := cond_mutual_info_pair_snd_fth_reshape_eq_zero_of_cond_markov P h
   rw [h_zero] at h_chain_x
   linarith

@@ -14,6 +14,7 @@ import CausalQIF.InformationFlow.CutSetBound
 import CausalQIF.InformationFlow.Duality
 import CausalQIF.InformationFlow.ChannelCapacity
 import CausalQIF.Main
+import CausalQIF.Examples.LinearChain
 
 /-!
 # CausalQIF

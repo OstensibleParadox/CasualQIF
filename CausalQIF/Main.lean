@@ -29,19 +29,6 @@ open Graph DSeparation Probability CausalModel InformationFlow
 
 noncomputable section
 
-variable {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
-variable [DecidableEq α] [DecidableEq β] [DecidableEq γ]
-
-/-! ## Core Bridge: D-Separation → CMI = 0 -/
-
-theorem condMutualInfo_eq_zero_of_factorizes_of_dSeparates
-    {V : Type} [DecidableEq V] [Fintype V] (v0 v1 v2 : V)
-    (G : DAG V) (P : FinitePMF (α × β × γ))
-    (h_factor : FactorizesOverDAG G (isMarkovChainNodeCI v0 v1 v2) P)
-    (h_dsep : dSeparates G ({v0} : Finset V) ({v2} : Finset V) ({v1} : Finset V)) :
-    condMutualInfo (Probability.pmfTripleReshapeFstThdSnd P) = 0 :=
-  CausalModel.condMutualInfo_eq_zero_of_factorizes_of_dSeparates v0 v1 v2 G P h_factor h_dsep
-
 /-! ## Main Theorem -/
 
 variable {State VisibleTrace MissingTrace CutVars : Type}
@@ -83,18 +70,6 @@ theorem certified_leakage_gap_of_dSeparated_graph
   rw [entropy_security_decomposition P]
   exact add_le_add (le_refl _) h_mi_bound
 
-/-! ## Linear Chain Special Case -/
-
-theorem linearChain_stateLeakage_le_one_of_dSeparates
-    {V : Type} [DecidableEq V] [Fintype V] (v0 v1 v2 : V)
-    (G : DAG V)
-    (P : FinitePMF (State × VisibleTrace × MissingTrace))
-    (P3 : FinitePMF (State × VisibleTrace × MissingTrace))
-    (_h_factor : FactorizesOverDAG G (isMarkovChainNodeCI v0 v1 v2) P3)
-    (_h_dsep : dSeparates G ({v0} : Finset V) ({v2} : Finset V) ({v1} : Finset V))
-    (h_cap : stateLeakage P ≤ 1) :
-    stateLeakage P ≤ 1 :=
-  h_cap
 
 /--
 The Shannon leakage bound derived from a dual KL witness.

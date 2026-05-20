@@ -39,8 +39,7 @@ def condMarkov (P : FinitePMF (α × β × γ × δ)) : Prop :=
       =
     marginalQuad_FstSndFth P (x, y, w) * marginalQuad_SndThdFth P (y, z, w)
 
-lemma cond_mutual_info_pair_fst_fth_reshape_nonneg (P : FinitePMF (α × β × γ × δ)) : 0 ≤ condMutualInfo (pmfPairFstFthReshape P) := by
-  exact condMutualInfo_nonneg (pmfPairFstFthReshape P)
+
 
 lemma cond_mutual_info_pair_snd_fth_reshape_eq_zero_of_cond_markov
     (P : FinitePMF (α × β × γ × δ)) (h : condMarkov P) :

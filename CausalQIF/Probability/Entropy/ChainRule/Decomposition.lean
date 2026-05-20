@@ -20,14 +20,14 @@ variable [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
 
 lemma cond_mutual_info_pair_fst_snd_eq_add_marg_out_snd_add_pair_fst_fth (P : FinitePMF (α × β × γ × δ)) :
     condMutualInfo (pmfPairFstSnd P) = condMutualInfo (pmfMargOutSnd P) + condMutualInfo (pmfPairFstFthReshape P) := by
-  rw [cond_mutual_info_pair_fst_snd, condMutualInfo_marg_out_snd, cond_mutual_info_pair_fst_fth_reshape]
+  rw [cond_mutual_info_pair_fst_snd, cond_mutual_info_marg_out_snd, cond_mutual_info_pair_fst_fth_reshape]
   have h_ent : entropy P = entropyOf P.pmf := rfl
   rw [h_ent]
   ring
 
 lemma cond_mutual_info_pair_fst_snd_eq_add_marg_out_fst_add_pair_snd_fth (P : FinitePMF (α × β × γ × δ)) :
     condMutualInfo (pmfPairFstSnd P) = condMutualInfo (pmfMargOutFst P) + condMutualInfo (pmfPairSndFthReshape P) := by
-  rw [cond_mutual_info_pair_fst_snd, condMutualInfo_marg_out_fst, cond_mutual_info_pair_snd_fth_reshape]
+  rw [cond_mutual_info_pair_fst_snd, cond_mutual_info_marg_out_fst, cond_mutual_info_pair_snd_fth_reshape]
   have h_ent : entropy P = entropyOf P.pmf := rfl
   rw [h_ent]
   ring

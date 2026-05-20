@@ -242,7 +242,7 @@ lemma stateLeakage_eq_condMutualInfo_pmfMargOutSnd_pmf_from_vars {CutVars : Type
     exact Probability.entropyOf_equiv_eq e (fun smt => Probability.marginalQuad_FstThdFth P4 smt)
       P.pmf
       (fun smt => by simpa using marginalQuad_FstThdFth_eq_P_swap P cut smt)
-  rw [Probability.condMutualInfo_marg_out_snd]
+  rw [Probability.cond_mutual_info_marg_out_snd]
   unfold stateLeakage
   rw [hXW, hZW, hW, hXZW]
 

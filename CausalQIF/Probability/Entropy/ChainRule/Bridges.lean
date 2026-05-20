@@ -121,7 +121,7 @@ lemma cond_mutual_info_pair_snd_fth_reshape (P : FinitePMF (α × β × γ × δ
   unfold condMutualInfo entropy
   rw [hXYW, hYZW, hYW, hFull]
 
-lemma condMutualInfo_marg_out_snd (P : FinitePMF (α × β × γ × δ)) :
+lemma cond_mutual_info_marg_out_snd (P : FinitePMF (α × β × γ × δ)) :
     condMutualInfo (pmfMargOutSnd P) = entropyOf (marginalQuad_FstFth P) +
     entropyOf (marginalQuad_ThdFth P) -
     entropyOf (marginalQuad_Fth P) -
@@ -147,7 +147,7 @@ lemma condMutualInfo_marg_out_snd (P : FinitePMF (α × β × γ × δ)) :
   unfold condMutualInfo
   rw [hXW, hZW, hW, hXZW]
 
-lemma condMutualInfo_marg_out_fst (P : FinitePMF (α × β × γ × δ)) :
+lemma cond_mutual_info_marg_out_fst (P : FinitePMF (α × β × γ × δ)) :
     condMutualInfo (pmfMargOutFst P) = entropyOf (marginalQuad_SndFth P) +
     entropyOf (marginalQuad_ThdFth P) -
     entropyOf (marginalQuad_Fth P) -

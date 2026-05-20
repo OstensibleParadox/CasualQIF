@@ -20,8 +20,8 @@ The distribution P(a, b, c) factorizes if P(a, b, c) = P(a) * P(b | a) * P(c | b
 -/
 def ProductFactorizes_chain3 (P : FinitePMF (α × β × γ)) : Prop :=
   ∀ a b c,
-    P.pmf (a, b, c) * marginalTriple_Snd P b =
-      marginalTriple_FstSnd P (a, b) * marginalTriple_SndThd P (b, c)
+    P.pmf (a, b, c) * marginalTripleSnd P b =
+      marginalTripleFstSnd P (a, b) * marginalTripleSndThd P (b, c)
 
 /--
 Direct derivation of the Markov property from product factorization for the chain instance.

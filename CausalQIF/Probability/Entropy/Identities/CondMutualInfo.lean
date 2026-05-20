@@ -22,35 +22,35 @@ lemma condMutualInfo_kl_identity (P : FinitePMF (α × β × γ)) :
     (∑ xyz : α × β × γ, P.pmf xyz * Real.log (P.pmf xyz / condProductMass P xyz))
       = condMutualInfo P * Real.log 2 := by
   let A : ℝ := ∑ xyz : α × β × γ, P.pmf xyz * Real.log (P.pmf xyz)
-  let B : ℝ := ∑ xz : α × γ, marginalTriple_FstThd P xz * Real.log (marginalTriple_FstThd P xz)
-  let C : ℝ := ∑ yz : β × γ, marginalTriple_SndThd P yz * Real.log (marginalTriple_SndThd P yz)
-  let D : ℝ := ∑ z : γ, marginalTriple_Thd P z * Real.log (marginalTriple_Thd P z)
+  let B : ℝ := ∑ xz : α × γ, marginalTripleFstThd P xz * Real.log (marginalTripleFstThd P xz)
+  let C : ℝ := ∑ yz : β × γ, marginalTripleSndThd P yz * Real.log (marginalTripleSndThd P yz)
+  let D : ℝ := ∑ z : γ, marginalTripleThd P z * Real.log (marginalTripleThd P z)
   have hterm : ∀ xyz : α × β × γ,
       P.pmf xyz * Real.log (P.pmf xyz / condProductMass P xyz)
         =
       ((P.pmf xyz * Real.log (P.pmf xyz)
-        - P.pmf xyz * Real.log (marginalTriple_FstThd P (xyz.1, xyz.2.2)))
-        - P.pmf xyz * Real.log (marginalTriple_SndThd P (xyz.2.1, xyz.2.2)))
-        + P.pmf xyz * Real.log (marginalTriple_Thd P xyz.2.2) := by
+        - P.pmf xyz * Real.log (marginalTripleFstThd P (xyz.1, xyz.2.2)))
+        - P.pmf xyz * Real.log (marginalTripleSndThd P (xyz.2.1, xyz.2.2)))
+        + P.pmf xyz * Real.log (marginalTripleThd P xyz.2.2) := by
     intro xyz
     by_cases hxyz : P.pmf xyz = 0
     · simp [hxyz]
     · rcases xyz with ⟨x, y, z⟩
       have hp_pos : 0 < P.pmf (x, y, z) :=
         lt_of_le_of_ne (P.pmf_nonneg (x, y, z)) (Ne.symm hxyz)
-      have hxz_pos : 0 < marginalTriple_FstThd P (x, z) :=
-        lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_FstThd P x y z)
-      have hyz_pos : 0 < marginalTriple_SndThd P (y, z) :=
-        lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_SndThd P x y z)
-      have hz_pos : 0 < marginalTriple_Thd P z :=
-        lt_of_lt_of_le hxz_pos (marginalTriple_FstThd_le_marginalTriple_Thd P x z)
+      have hxz_pos : 0 < marginalTripleFstThd P (x, z) :=
+        lt_of_lt_of_le hp_pos (pmf_le_marginalTripleFstThd P x y z)
+      have hyz_pos : 0 < marginalTripleSndThd P (y, z) :=
+        lt_of_lt_of_le hp_pos (pmf_le_marginalTripleSndThd P x y z)
+      have hz_pos : 0 < marginalTripleThd P z :=
+        lt_of_lt_of_le hxz_pos (marginalTripleFstThd_le_marginalTripleThd P x z)
       have hq_pos : 0 < condProductMass P (x, y, z) :=
         condProductMass_pos_of_pmf_ne_zero P (x, y, z) hxyz
       have hlogq : Real.log (condProductMass P (x, y, z))
           =
-          Real.log (marginalTriple_FstThd P (x, z)) +
-          Real.log (marginalTriple_SndThd P (y, z)) -
-          Real.log (marginalTriple_Thd P z) := by
+          Real.log (marginalTripleFstThd P (x, z)) +
+          Real.log (marginalTripleSndThd P (y, z)) -
+          Real.log (marginalTripleThd P z) := by
         unfold condProductMass
         rw [Real.log_div (mul_ne_zero hxz_pos.ne' hyz_pos.ne') hz_pos.ne']
         rw [Real.log_mul hxz_pos.ne' hyz_pos.ne']
@@ -66,30 +66,30 @@ lemma condMutualInfo_kl_identity (P : FinitePMF (α × β × γ)) :
           =
         ∑ xyz : α × β × γ,
           (((P.pmf xyz * Real.log (P.pmf xyz)
-            - P.pmf xyz * Real.log (marginalTriple_FstThd P (xyz.1, xyz.2.2)))
-            - P.pmf xyz * Real.log (marginalTriple_SndThd P (xyz.2.1, xyz.2.2)))
-            + P.pmf xyz * Real.log (marginalTriple_Thd P xyz.2.2)) := by
+            - P.pmf xyz * Real.log (marginalTripleFstThd P (xyz.1, xyz.2.2)))
+            - P.pmf xyz * Real.log (marginalTripleSndThd P (xyz.2.1, xyz.2.2)))
+            + P.pmf xyz * Real.log (marginalTripleThd P xyz.2.2)) := by
             apply Finset.sum_congr rfl
             intro xyz _
             exact hterm xyz
       _ = A - B - C + D := by
             rw [Finset.sum_add_distrib, Finset.sum_sub_distrib, Finset.sum_sub_distrib]
-            rw [sum_pmf_log_marginalTriple_FstThd P, sum_pmf_log_marginalTriple_SndThd P,
-              sum_pmf_log_marginalTriple_Thd P]
-  have hHXZ := entropyOf_mul_log2 (marginalTriple_FstThd P)
-  have hHYZ := entropyOf_mul_log2 (marginalTriple_SndThd P)
-  have hHZ := entropyOf_mul_log2 (marginalTriple_Thd P)
+            rw [sum_pmf_log_marginalTripleFstThd P, sum_pmf_log_marginalTripleSndThd P,
+              sum_pmf_log_marginalTripleThd P]
+  have hHXZ := entropyOf_mul_log2 (marginalTripleFstThd P)
+  have hHYZ := entropyOf_mul_log2 (marginalTripleSndThd P)
+  have hHZ := entropyOf_mul_log2 (marginalTripleThd P)
   have hHXYZ := entropyOf_mul_log2 (fun xyz : α × β × γ => P.pmf xyz)
   have hcmi : condMutualInfo P * Real.log 2 = A - B - C + D := by
     unfold condMutualInfo
     calc
-      (entropyOf (marginalTriple_FstThd P) + entropyOf (marginalTriple_SndThd P) -
-          entropyOf (marginalTriple_Thd P) -
+      (entropyOf (marginalTripleFstThd P) + entropyOf (marginalTripleSndThd P) -
+          entropyOf (marginalTripleThd P) -
           entropyOf (fun xyz : α × β × γ => P.pmf xyz)) * Real.log 2
           =
-        entropyOf (marginalTriple_FstThd P) * Real.log 2 +
-          entropyOf (marginalTriple_SndThd P) * Real.log 2 -
-          entropyOf (marginalTriple_Thd P) * Real.log 2 -
+        entropyOf (marginalTripleFstThd P) * Real.log 2 +
+          entropyOf (marginalTripleSndThd P) * Real.log 2 -
+          entropyOf (marginalTripleThd P) * Real.log 2 -
           entropyOf (fun xyz : α × β × γ => P.pmf xyz) * Real.log 2 := by
             ring
       _ = A - B - C + D := by
@@ -120,10 +120,10 @@ theorem condMutualInfo_eq_zero_of_condIndep (P : FinitePMF (α × β × γ))
     apply Finset.sum_eq_zero; intro xyz _; by_cases hx : P.pmf xyz = 0
     · simp [hx]
     · rcases xyz with ⟨a, b, z⟩; have h_eq := hIndep a b z
-      have hz_pos : 0 < marginalTriple_Thd P z := by
+      have hz_pos : 0 < marginalTripleThd P z := by
         have hp_pos : 0 < P.pmf (a, b, z) := lt_of_le_of_ne (P.pmf_nonneg _) (Ne.symm hx)
-        have hXZ_pos : 0 < marginalTriple_FstThd P (a, z) := lt_of_lt_of_le hp_pos (pmf_le_marginalTriple_FstThd P a b z)
-        exact lt_of_lt_of_le hXZ_pos (marginalTriple_FstThd_le_marginalTriple_Thd P a z)
+        have hXZ_pos : 0 < marginalTripleFstThd P (a, z) := lt_of_lt_of_le hp_pos (pmf_le_marginalTripleFstThd P a b z)
+        exact lt_of_lt_of_le hXZ_pos (marginalTripleFstThd_le_marginalTripleThd P a z)
       have hq_eq : condProductMass P (a, b, z) = P.pmf (a, b, z) := by
         unfold condProductMass; rw [← h_eq]; field_simp [hz_pos.ne']
       simp [hq_eq, hx]

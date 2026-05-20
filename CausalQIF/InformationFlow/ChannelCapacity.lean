@@ -44,8 +44,8 @@ lemma marginalQuad_Snd_sum_one {α β γ δ : Type} [Fintype α] [Fintype β] [F
 lemma marginalQuad_Snd_eq_marginalQuad_SndFth_on_unit {α β γ : Type} [Fintype α] [Fintype β] [Fintype γ]
     [DecidableEq α] [DecidableEq β] [DecidableEq γ]
     (P : FinitePMF (α × β × γ × Unit)) (y : β) :
-    marginalQuad_Snd P y = marginalQuad_SndFth P (y, ()) := by
-  unfold marginalQuad_Snd marginalQuad_SndFth
+    marginalQuad_Snd P y = marginalQuadSndFth P (y, ()) := by
+  unfold marginalQuad_Snd marginalQuadSndFth
   simp
 
 /-! ## KKT Certificate Structure -/
@@ -65,7 +65,7 @@ structure KKT_Certificate
   C : ℝ
   p_star : β → ℝ
   per_symbol_I : β → ℝ
-  h_weighted_decomp : condMutualInfo (pmfMargOutFst P4) = ∑ y : β, p_star y * per_symbol_I y
+  h_weighted_decomp : condMutualInfo (marginalizeOutFst P4) = ∑ y : β, p_star y * per_symbol_I y
   h_kkt_condition : ∀ y : β, per_symbol_I y ≤ C
   h_p_star_nonneg : ∀ y : β, 0 ≤ p_star y
   h_p_star_sum_one : ∑ y : β, p_star y = 1
@@ -82,9 +82,9 @@ theorem capacity_le_of_kkt
     [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
     (P4 : FinitePMF (α × β × γ × δ))
     (cert : KKT_Certificate P4) :
-    condMutualInfo (pmfMargOutFst P4) ≤ cert.C := by
+    condMutualInfo (marginalizeOutFst P4) ≤ cert.C := by
   calc
-    condMutualInfo (pmfMargOutFst P4) = ∑ y : β, cert.p_star y * cert.per_symbol_I y := cert.h_weighted_decomp
+    condMutualInfo (marginalizeOutFst P4) = ∑ y : β, cert.p_star y * cert.per_symbol_I y := cert.h_weighted_decomp
     _ ≤ ∑ y : β, cert.p_star y * cert.C := by
       refine Finset.sum_le_sum (fun y _ => ?_)
       have hy_nonneg : 0 ≤ cert.p_star y := cert.h_p_star_nonneg y
@@ -100,10 +100,10 @@ theorem capacity_le_of_kkt
 /-! ## Convenience: certificate from a direct bound -/
 
 /--
-Construct a KKT certificate from a direct bound on condMutualInfo (pmfMargOutFst P4) and the actual
+Construct a KKT certificate from a direct bound on condMutualInfo (marginalizeOutFst P4) and the actual
 marginal distribution p(y) = marginalQuad_Snd(P4)(y).
 
-The per-symbol terms are all set to condMutualInfo (pmfMargOutFst P4), so the weighted decomposition
+The per-symbol terms are all set to condMutualInfo (marginalizeOutFst P4), so the weighted decomposition
 holds because Σ_y p(y) = 1.
 -/
 def KKT_Certificate.of_direct_bound
@@ -112,16 +112,16 @@ def KKT_Certificate.of_direct_bound
     [DecidableEq α] [DecidableEq β] [DecidableEq γ] [DecidableEq δ]
     (P4 : FinitePMF (α × β × γ × δ))
     (C : ℝ)
-    (h_bound : condMutualInfo (pmfMargOutFst P4) ≤ C) : KKT_Certificate P4 :=
+    (h_bound : condMutualInfo (marginalizeOutFst P4) ≤ C) : KKT_Certificate P4 :=
   {
     C := C
     p_star := marginalQuad_Snd P4
-    per_symbol_I := fun _ => condMutualInfo (pmfMargOutFst P4)
+    per_symbol_I := fun _ => condMutualInfo (marginalizeOutFst P4)
     h_weighted_decomp := by
       calc
-        condMutualInfo (pmfMargOutFst P4) = (∑ y : β, marginalQuad_Snd P4 y) * condMutualInfo (pmfMargOutFst P4) := by
+        condMutualInfo (marginalizeOutFst P4) = (∑ y : β, marginalQuad_Snd P4 y) * condMutualInfo (marginalizeOutFst P4) := by
           rw [marginalQuad_Snd_sum_one P4, one_mul]
-        _ = ∑ y : β, (marginalQuad_Snd P4 y * condMutualInfo (pmfMargOutFst P4)) := by
+        _ = ∑ y : β, (marginalQuad_Snd P4 y * condMutualInfo (marginalizeOutFst P4)) := by
           rw [Finset.sum_mul]
     h_kkt_condition := by
       intro y
@@ -147,11 +147,11 @@ def KKT_Certificate.of_dual_witness
     (h_ω_sum : ∀ w, ∑ z, ω w z = 1)
     (h_ω_pos : ∀ w z, 0 < ω w z)
     (C : ℝ)
-    (h_bound : ∑ y, ∑ z, ∑ w, (pmfMargOutFst P4).pmf (y, z, w) * 
-               Real.log ((pmfMargOutFst P4).pmf (y, z, w) / (marginalTriple_FstThd (pmfMargOutFst P4) (y, w) * ω w z)) 
+    (h_bound : ∑ y, ∑ z, ∑ w, (marginalizeOutFst P4).pmf (y, z, w) * 
+               Real.log ((marginalizeOutFst P4).pmf (y, z, w) / (marginalTripleFstThd (marginalizeOutFst P4) (y, w) * ω w z)) 
                ≤ C * Real.log 2) : KKT_Certificate P4 :=
   KKT_Certificate.of_direct_bound P4 C
-    (condMutualInfo_le_of_dual_witness (pmfMargOutFst P4) ω h_ω_sum h_ω_pos C h_bound)
+    (condMutualInfo_le_of_dual_witness (marginalizeOutFst P4) ω h_ω_sum h_ω_pos C h_bound)
 
 end
 

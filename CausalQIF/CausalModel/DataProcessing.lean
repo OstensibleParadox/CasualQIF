@@ -15,12 +15,12 @@ open Probability
 /-- **Conditional Data Processing Inequality**.
     If X-Y-Z is a Markov chain given W, then I(X;Z|W) ≤ I(Y;Z|W). -/
 theorem cond_dpi (P : FinitePMF (α × β × γ × δ)) (h : condMarkov P) :
-    condMutualInfo (pmfMargOutSnd P) ≤ condMutualInfo (pmfMargOutFst P) := by
-  have h_chain_x : condMutualInfo (pmfMargOutSnd P) + condMutualInfo (pmfPairFstFthReshape P) = condMutualInfo (pmfMargOutFst P) + condMutualInfo (pmfPairSndFthReshape P) := by
-    rw [cond_mutual_info_marg_out_snd, cond_mutual_info_pair_fst_fth_reshape, cond_mutual_info_marg_out_fst, cond_mutual_info_pair_snd_fth_reshape]
+    condMutualInfo (marginalizeOutSnd P) ≤ condMutualInfo (marginalizeOutFst P) := by
+  have h_chain_x : condMutualInfo (marginalizeOutSnd P) + condMutualInfo (pmfPairFstFthReshape P) = condMutualInfo (marginalizeOutFst P) + condMutualInfo (pmfPairSndFthReshape P) := by
+    rw [condMutualInfo_pmfMargOutSnd, condMutualInfo_pmfPairFstFthReshape, condMutualInfo_pmfMargOutFst, condMutualInfo_pmfPairSndFthReshape]
     ring
   have h_nonneg := condMutualInfo_nonneg (pmfPairFstFthReshape P)
-  have h_zero := cond_mutual_info_pair_snd_fth_reshape_eq_zero_of_cond_markov P h
+  have h_zero := condMutualInfo_pmfPairSndFthReshape_eq_zero_of_condMarkov P h
   rw [h_zero] at h_chain_x
   linarith
 

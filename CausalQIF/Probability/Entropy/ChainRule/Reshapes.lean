@@ -1,4 +1,5 @@
 import CausalQIF.Probability.Entropy.Basic
+import CausalQIF.Probability.FinitePMF.Marginalize
 
 open Finset
 open scoped BigOperators Real
@@ -56,23 +57,17 @@ def pmfPairSndFthReshape (P : FinitePMF (α × β × γ × δ)) :
     FinitePMF (α × γ × (β × δ)) :=
   FinitePMF.comapEquiv equivPairSndFthReshape P
 
-def equivMargOutSnd : (α × γ × δ) × β ≃ α × β × γ × δ where
-  toFun t := (t.1.1, t.2, t.1.2.1, t.1.2.2)
-  invFun t := ((t.1, t.2.2.1, t.2.2.2), t.2.1)
-  left_inv := by intro t; rcases t with ⟨⟨x, z, w⟩, y⟩; rfl
-  right_inv := by intro t; rcases t with ⟨x, y, z, w⟩; rfl
+@[deprecated equivMarginalizeOutSnd (since := "2026-05")]
+alias equivMargOutSnd := equivMarginalizeOutSnd
 
-def pmfMargOutSnd (P : FinitePMF (α × β × γ × δ)) : FinitePMF (α × γ × δ) :=
-  marginalizeLeafPMF (FinitePMF.comapEquiv equivMargOutSnd P)
+@[deprecated marginalizeOutSnd (since := "2026-05")]
+alias pmfMargOutSnd := marginalizeOutSnd
 
-def equivMargOutFst : (β × γ × δ) × α ≃ α × β × γ × δ where
-  toFun t := (t.2, t.1.1, t.1.2.1, t.1.2.2)
-  invFun t := ((t.2.1, t.2.2.1, t.2.2.2), t.1)
-  left_inv := by intro t; rcases t with ⟨⟨y, z, w⟩, x⟩; rfl
-  right_inv := by intro t; rcases t with ⟨x, y, z, w⟩; rfl
+@[deprecated equivMarginalizeOutFst (since := "2026-05")]
+alias equivMargOutFst := equivMarginalizeOutFst
 
-def pmfMargOutFst (P : FinitePMF (α × β × γ × δ)) : FinitePMF (β × γ × δ) :=
-  marginalizeLeafPMF (FinitePMF.comapEquiv equivMargOutFst P)
+@[deprecated marginalizeOutFst (since := "2026-05")]
+alias pmfMargOutFst := marginalizeOutFst
 
 def equivPairFstSnd : (α × β) × γ × δ ≃ α × β × γ × δ where
   toFun t := (t.1.1, t.1.2, t.2.1, t.2.2)

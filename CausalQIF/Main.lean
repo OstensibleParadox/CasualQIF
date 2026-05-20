@@ -51,7 +51,7 @@ theorem stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le
     (P : FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars)
     (C : ℝ)
-    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmf_from_vars P cut))
+    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmfFromVars P cut))
     (h_dsep : dSeparates G ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V))
     (h_cap : cutCapacity P cut ≤ C) :
     stateLeakage P ≤ C :=
@@ -70,10 +70,10 @@ theorem certified_leakage_gap_of_dSeparated_graph
     (P : FinitePMF (State × VisibleTrace × MissingTrace))
     (cut : CutSetData State VisibleTrace MissingTrace CutVars)
     (C : ℝ)
-    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmf_from_vars P cut))
+    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmfFromVars P cut))
     (h_dsep : dSeparates G ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V))
     (h_cap : cutCapacity P cut ≤ C) :
-    H_S_cond_Ttilde P ≤ H_S_cond_Tfull P + C := by
+    hSCondTtilde P ≤ hSCondTfull P + C := by
   have h_mi_bound :=
     stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le
       vX vY vZ vW G P cut C h_factor h_dsep h_cap
@@ -94,14 +94,14 @@ theorem stateLeakage_le_of_dual_witness
     (h_ω_sum : ∀ w, ∑ z, ω w z = 1)
     (h_ω_pos : ∀ w z, 0 < ω w z)
     (C : ℝ)
-    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmf_from_vars P cut))
+    (h_factor : FactorizesOverDAG G (fun P' _ _ _ => Probability.condMarkov P') (pmfFromVars P cut))
     (h_dsep : dSeparates G ({vX} : Finset V) ({vZ} : Finset V) ({vY, vW} : Finset V))
-    (h_bound : ∑ y, ∑ z, ∑ w, (pmfMargOutFst (pmf_from_vars P cut)).pmf (y, z, w) * 
-               Real.log ((pmfMargOutFst (pmf_from_vars P cut)).pmf (y, z, w) / (marginalTriple_FstThd (pmfMargOutFst (pmf_from_vars P cut)) (y, w) * ω w z)) 
+    (h_bound : ∑ y, ∑ z, ∑ w, (marginalizeOutFst (pmfFromVars P cut)).pmf (y, z, w) * 
+               Real.log ((marginalizeOutFst (pmfFromVars P cut)).pmf (y, z, w) / (marginalTripleFstThd (marginalizeOutFst (pmfFromVars P cut)) (y, w) * ω w z)) 
                ≤ C * Real.log 2) :
     stateLeakage P ≤ C :=
   stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le vX vY vZ vW G P cut C h_factor h_dsep
-    (condMutualInfo_le_of_dual_witness (pmfMargOutFst (pmf_from_vars P cut)) ω h_ω_sum h_ω_pos C h_bound)
+    (condMutualInfo_le_of_dual_witness (marginalizeOutFst (pmfFromVars P cut)) ω h_ω_sum h_ω_pos C h_bound)
 
 end
 

@@ -1,10 +1,9 @@
 import CausalQIF.Graph.DirectedAcyclic
+import Mathlib.Data.Nat.Basic
 
 open Finset
 
 namespace CausalQIF.Graph
-
-noncomputable section
 
 /-! # DAG Reachability
 
@@ -13,16 +12,27 @@ Descendants, ancestors, ancestral subgraph, leaf deletion.
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
+def reachableStep (G : DAG V) (S : Finset V) : Finset V :=
+  S ∪ S.biUnion (fun v => (G.edges.filter (fun e => e.1 = v)).image Prod.snd)
+
+def reachableFinset (G : DAG V) (u : V) : Finset V :=
+  (Nat.iterate (reachableStep G) (Fintype.card V)) {u}
+
+lemma reachable_equiv_reachableFinset (G : DAG V) (u v : V) :
+    v ∈ reachableFinset G u ↔ Relation.ReflTransGen (fun a b => G.hasEdge a b) u v := by
+  sorry
+
 def reachable (G : DAG V) (u v : V) : Prop :=
   Relation.ReflTransGen (fun a b => G.hasEdge a b) u v
 
-def descendants (G : DAG V) (v : V) : Finset V := by
-  classical
-  exact G.nodes.filter fun w => w ≠ v ∧ reachable G v w
+instance (G : DAG V) (u v : V) : Decidable (reachable G u v) :=
+  decidable_of_iff (v ∈ reachableFinset G u) (reachable_equiv_reachableFinset G u v)
 
-def ancestors (G : DAG V) (v : V) : Finset V := by
-  classical
-  exact G.nodes.filter fun u => u ≠ v ∧ reachable G u v
+def descendants (G : DAG V) (v : V) : Finset V :=
+  G.nodes.filter fun w => w ≠ v ∧ reachable G v w
+
+def ancestors (G : DAG V) (v : V) : Finset V :=
+  G.nodes.filter fun u => u ≠ v ∧ reachable G u v
 
 def nonDescendants (G : DAG V) (v : V) : Finset V :=
   G.nodes \ ({v} ∪ descendants G v)
@@ -31,9 +41,8 @@ namespace DAG
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
-def ancestors (G : DAG V) (v : V) : Finset V := by
-  classical
-  exact G.nodes.filter fun u => reachable G u v
+def ancestors (G : DAG V) (v : V) : Finset V :=
+  G.nodes.filter fun u => reachable G u v
 
 def ancestralSubgraphNodes (G : DAG V) (S : Finset V) : Finset V :=
   S.biUnion fun v => G.ancestors v
@@ -65,7 +74,7 @@ lemma deleteLeaf_card_lt {G : DAG V} {v : V} (hv : v ∈ G.nodes) :
 
 lemma mem_ancestors_self (G : DAG V) {v : V} (hv : v ∈ G.nodes) :
     v ∈ G.ancestors v := by
-  simp [DAG.ancestors, hv, reachable, Relation.ReflTransGen.refl]
+  simp [DAG.ancestors, reachable, Relation.ReflTransGen.refl, hv]
 
 lemma target_mem_nodes_of_reachable {G : DAG V} {u v : V}
     (hreach : reachable G u v) (hu : u ∈ G.nodes) :
@@ -84,7 +93,6 @@ lemma mem_ancestralSubgraphNodes_of_mem {G : DAG V} {S : Finset V} {v : V}
 lemma mem_ancestors_of_hasEdge_of_mem_ancestors {G : DAG V} {u v s : V}
     (huv : G.hasEdge u v) (hvs : v ∈ G.ancestors s) :
     u ∈ G.ancestors s := by
-  classical
   have huG : u ∈ G.nodes := (G.edges_subset huv).1
   have hreach_v_s : reachable G v s := (Finset.mem_filter.mp hvs).2
   have hreach_u_s : reachable G u s :=
@@ -99,7 +107,5 @@ lemma mem_ancestralSubgraphNodes_of_hasEdge_left {G : DAG V} {S : Finset V} {u v
     ⟨s, hsS, mem_ancestors_of_hasEdge_of_mem_ancestors huv hvs⟩
 
 end DAG
-
-end
 
 end CausalQIF.Graph

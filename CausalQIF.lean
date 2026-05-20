@@ -19,7 +19,7 @@ import CausalQIF.Examples.LinearChain
 /-!
 # CausalQIF
 
-A clean Lean 4 library for causal inference with quantitative information flow.
+A Lean 4 library for causal inference with quantitative information flow.
 
 ## Main Results
 
@@ -28,9 +28,12 @@ A clean Lean 4 library for causal inference with quantitative information flow.
 - `dSeparates`: Trail-based d-separation predicate
 - `FactorizesOverDAG`: Semantic DAG factorization
 - `isMarkovChain_of_productFactorizes_chain3`: Product-factorized chain instance → Markov chain
-- `condMutualInfo_eq_zero_of_factorizes_of_dSeparates`: D-sep → CMI = 0 bridge
+- `condMutualInfo_eq_zero_of_isMarkovChain`: Markov chain → CMI = 0
+- `CausalModel.condMutualInfo_eq_zero_of_factorizes_of_dSeparates`: D-sep → CMI = 0 bridge
+- `cond_dpi`: Conditional data processing inequality
 - `condMutualInfo_le_of_dual_witness`: Dual KL witness → CMI upper bound
-- `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le`: Main theorem
+- `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le`: Main cut-set leakage bound
+- `certified_leakage_gap_of_dSeparated_graph`: H(S∣T̃) ≤ H(S∣T_full) + C
 - `stateLeakage_le_of_dual_witness`: Cut-set leakage bound from a dual witness
 
 ## Module Hierarchy
@@ -42,28 +45,58 @@ CausalQIF/
 │   ├── Reachability.lean
 │   └── Moralization.lean
 ├── DSeparation/
+│   ├── ActiveRoute.lean
+│   ├── BayesBall/
+│   │   ├── Basic.lean
+│   │   └── Certified.lean
 │   ├── Path/
 │   │   └── Trail.lean
+│   │       ├── Basic.lean
+│   │       ├── BayesBall.lean
+│   │       ├── Blocking.lean
+│   │       └── Triple.lean
+│   ├── TraceSynthesis.lean
+│   │   ├── Assembly.lean
+│   │   ├── Graph.lean
+│   │   ├── MinimalWitness.lean
+│   │   ├── OpenTrace.lean
+│   │   │   ├── BadColliders.lean
+│   │   │   ├── Basic.lean
+│   │   │   └── Compile.lean
+│   │   ├── Split.lean
+│   │   └── StaticRoute.lean
+│   │       ├── Basic.lean
+│   │       └── Reachability.lean
 │   ├── MAGWalk.lean
 │   └── Equivalence.lean
 ├── Probability/
 │   ├── FinitePMF.lean
-│   ├── FinitePMF/
+│   │   ├── Basic.lean
+│   │   ├── Entropy.lean
+│   │   ├── Marginal.lean
 │   │   └── Marginalize.lean
 │   ├── Entropy.lean
-│   ├── Entropy/
 │   │   ├── Basic.lean
 │   │   ├── ChainRule.lean
+│   │   │   ├── Marginals.lean
+│   │   │   ├── Reshapes.lean
+│   │   │   ├── Bridges.lean
+│   │   │   └── Decomposition.lean
 │   │   ├── Identities.lean
+│   │   │   ├── SumLogIdentities.lean
+│   │   │   └── CondMutualInfo.lean
 │   │   └── KLDivergence.lean
 │   └── Markov.lean
 ├── CausalModel/
 │   ├── Factorization.lean
-│   └── ProductFactorization.lean
+│   ├── ProductFactorization.lean
+│   └── DataProcessing.lean
 ├── InformationFlow/
 │   ├── CutSetBound.lean
 │   ├── Duality.lean
 │   └── ChannelCapacity.lean
+├── Examples/
+│   └── LinearChain.lean
 └── Main.lean
 ```
 -/

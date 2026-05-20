@@ -4,23 +4,33 @@ import CausalQIF.InformationFlow.Duality
 /-!
 # CausalQIF Main Module
 
-This module exposes the main theorem:
+This module exposes the headline theorems:
 
-**D-Separation Cut-Set Extraction Theorem**
+**Cut-Set Leakage Bound**
 
 `stateLeakage_le_of_factorizes_of_dSeparates_of_cutMutualInfo_le`
 
-Given:
-1. A DAG `G` with factorizing distribution `P`
-2. D-separation hypothesis `dSeparates G X Y Z`
-3. Cut-set capacity bound `cutMutualInfo P cut ≤ C`
+Given a DAG `G` with factorizing distribution, d-separation, and a cut-set
+capacity bound `cutCapacity P cut ≤ C`, then `stateLeakage P ≤ C`.
 
-Then: `stateLeakage P ≤ C`
+**Certified Leakage Gap**
 
-This connects:
+`certified_leakage_gap_of_dSeparated_graph`
+
+Elevates the cut-set bound to an operational security limit:
+`H(S ∣ T̃) ≤ H(S ∣ T_full) + C`.
+
+**Dual Witness Bound**
+
+`stateLeakage_le_of_dual_witness`
+
+Composes the cut-set bound with the variational duality theorem to derive
+`stateLeakage P ≤ C` from a KL-divergence witness.
+
+This module connects:
 - Verified d-separation from `CausalQIF.DSeparation`
 - Explicit DAG factorization from `CausalQIF.CausalModel`
-- Cut-capacity from `CausalQIF.InformationFlow`
+- Cut-capacity and duality from `CausalQIF.InformationFlow`
 -/
 
 namespace CausalQIF

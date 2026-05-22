@@ -8,6 +8,7 @@ import CausalQIF.Probability.FinitePMF
 import CausalQIF.Probability.FinitePMF.Marginalize
 import CausalQIF.Probability.Entropy
 import CausalQIF.Probability.Markov
+import CausalQIF.Probability.CTMC
 import CausalQIF.CausalModel.Factorization
 import CausalQIF.CausalModel.ProductFactorization
 import CausalQIF.InformationFlow.CutSetBound
@@ -88,6 +89,7 @@ CausalQIF/
 │   │   │   └── CondMutualInfo.lean
 │   │   └── KLDivergence.lean
 │   └── Markov.lean
+│   └── CTMC.lean
 ├── CausalModel/
 │   ├── Factorization.lean
 │   ├── ProductFactorization.lean

@@ -68,3 +68,20 @@ lemma isGenerator_restoringGenerator (x_star : α) : IsGenerator (restoringGener
       rw [← H]
       rw [sum_pair h_ne.symm]
       simp [h_ne]
+
+/-- The algebraic rate of change of KL divergence KL(p || π) along the direction p * Q.
+This represents `(d/dt) D(T_t p_0 || π)` at `t = 0`. -/
+noncomputable def klDerivative (Q : Matrix α α ℝ) (p π : α → ℝ) : ℝ :=
+  ∑ i, (∑ j, p j * Q j i) * Real.log (p i / π i)
+
+/-- The discrete Fisher information for a finite Markov chain. -/
+noncomputable def discreteFisherInfo (Q : Matrix α α ℝ) (p π : α → ℝ) : ℝ :=
+  - ∑ i, (∑ j, p j * Q j i) * Real.log (p i / π i)
+
+/-- The de Bruijn identity for finite CTMCs.
+Algebraically connects the time derivative of relative entropy to the discrete Fisher information.
+`(d/dt) D(T_t p_0 || γ) = - I(p_t || γ)` -/
+theorem deBruijn_identity {α : Type*} [Fintype α] (Q : Matrix α α ℝ) (p π : α → ℝ) :
+  klDerivative Q p π = - discreteFisherInfo Q p π := by
+  dsimp [klDerivative, discreteFisherInfo]
+  ring

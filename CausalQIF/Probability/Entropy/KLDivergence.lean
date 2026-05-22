@@ -68,6 +68,50 @@ lemma klDivergence_nonneg
     0 ≤ klDivergence p q :=
   kl_nonneg_support p q hp_nonneg hq_nonneg h_support hp_sum_one hq_sum_one
 
+/--
+The generalized Pythagorean theorem for KL divergence.
+
+If p, m, q are distributions (or positive functions) such that
+the inner product (p - m, log (m / q)) vanishes, then
+KL(p || q) = KL(p || m) + KL(m || q).
+This formalizes the orthogonal m-projection argument from Layer 3
+of information geometry without requiring continuous-time dynamics.
+-/
+lemma kl_pythagorean {ι : Type} [Fintype ι] [DecidableEq ι]
+    (p m q : ι → ℝ)
+    (hp_pos : ∀ x, p x ≠ 0 → 0 < p x)
+    (hm_pos : ∀ x, 0 < m x)
+    (hq_pos : ∀ x, 0 < q x)
+    (h_ortho : ∑ x, (p x - m x) * Real.log (m x / q x) = 0) :
+    klDivergence p q = klDivergence p m + klDivergence m q := by
+  unfold klDivergence
+  have h1 : ∑ x, p x * Real.log (p x / q x) = ∑ x, (p x * Real.log (p x / m x) + p x * Real.log (m x / q x)) := by
+    apply sum_congr rfl
+    intro x _
+    by_cases hpx : p x = 0
+    · simp [hpx]
+    · have hpx_gt : 0 < p x := hp_pos x hpx
+      have hmx_gt : 0 < m x := hm_pos x
+      have hqx_gt : 0 < q x := hq_pos x
+      have hlog : Real.log (p x / q x) = Real.log (p x / m x) + Real.log (m x / q x) := by
+        rw [Real.log_div hpx_gt.ne' hqx_gt.ne', Real.log_div hpx_gt.ne' hmx_gt.ne', Real.log_div hmx_gt.ne' hqx_gt.ne']
+        ring
+      rw [hlog]
+      ring
+  rw [h1, sum_add_distrib]
+  have h2 : ∑ x, p x * Real.log (m x / q x) = ∑ x, m x * Real.log (m x / q x) := by
+    have h3 : ∑ x, (p x - m x) * Real.log (m x / q x) = 0 := h_ortho
+    have h4 : ∑ x, (p x * Real.log (m x / q x) - m x * Real.log (m x / q x)) = 0 := by
+      calc ∑ x, (p x * Real.log (m x / q x) - m x * Real.log (m x / q x))
+        _ = ∑ x, (p x - m x) * Real.log (m x / q x) := by
+          apply sum_congr rfl
+          intro x _
+          ring
+        _ = 0 := h3
+    rw [sum_sub_distrib] at h4
+    linarith
+  linarith
+
 end
 
 end CausalQIF.Probability

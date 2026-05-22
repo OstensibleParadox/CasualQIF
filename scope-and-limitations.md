@@ -28,6 +28,7 @@
 - `condMutualInfo_kl_identity` (`Probability/Entropy/Identities/CondMutualInfo.lean:21`) — CMI = KL(P ‖ condProductMass) up to `log 2`.
 - `condMutualInfo_nonneg`, `condMutualInfo_eq_zero_of_condIndep` — same file, via KL.
 - `klDivergence_nonneg` / `kl_nonneg_support` (`Entropy/KLDivergence.lean:15,61`) — Gibbs hand-rolled via `log p ≤ p − 1`.
+- `kl_pythagorean` (`Entropy/KLDivergence.lean:80`) — Generalized Pythagorean theorem for KL divergence. Formalizes the orthogonal m-projection capacity bound without requiring continuous-time dynamics (Fokker-Planck).
 - `dSeparated_iff_dSeparates` (`DSeparation/Equivalence.lean:144`) — **both directions** of trail-blocking ↔ moralised-ancestral-graph reachability, restricted to pairwise-disjoint queries (`Equivalence.lean:126,143`). Soundness via `MAGWalk` / Bayes-Ball compression; completeness via `activeWitness_of_not_dSeparated`. Unrestricted equivalence is known to fail — the archived counterexample at `archive/CausalQIFArchive/Trash/DSeparation/Counterexample.lean` documents why.
 
 ### 1.3 Mathlib coupling
